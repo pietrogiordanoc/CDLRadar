@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
-import { BarChart2, Bookmark, X } from 'lucide-react';
+import { Bookmark, X } from 'lucide-react';
 import { Instrument, MultiTimeframeAnalysis, SignalType, ActionType, Timeframe, Strategy, Candlestick, TradeSetup } from '../types';
 import { fetchTimeSeries, PriceStore, resampleCandles, isMarketOpen } from '../services/twelveDataService';
 import { audioService } from '../utils/audioService';
@@ -23,6 +23,15 @@ type ActiveTrade = {
   direction: 'buy' | 'sell';
   tp?: number;
 };
+
+const ChartMonitorIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <rect x="2.5" y="3" width="19" height="13" rx="2" />
+    <path d="M8 21h8M10 16v5M14 16v5" />
+    <path d="M5.5 13l4.2-2.7 1.8 1.3 3.4-3.6 2.6 1.6" />
+    <path d="M7.5 11V8.7M11 12V9M14.5 9.4V6.8M18 11.2V8.5" />
+  </svg>
+);
 
 const calculateProfitDisplay = (tp: number, entry: number, instrument: Instrument): { value: string, unit: string } => {
     const profitDistance = Math.abs(tp - entry);
@@ -317,12 +326,12 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
   const getChartButtonClass = () => {
     if (chartStatus === 'visible') {
-      return 'text-neutral-200';
+      return 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400';
     }
     if (chartStatus === 'minimized') {
-      return 'text-neutral-400';
+      return 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400';
     }
-    return 'text-neutral-700 hover:text-neutral-400';
+    return 'bg-transparent border-neutral-800 text-neutral-700 hover:border-neutral-700 hover:text-neutral-400';
   };
 
   return (
@@ -349,8 +358,8 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
             </div>
             <span className="text-[9px] text-neutral-500 font-medium leading-none mt-0.5">{instrument.name}</span>
           </div>
-          <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded transition-colors ${getChartButtonClass()}`} title="Abrir gráfico">
-            <BarChart2 className="w-3.5 h-3.5" />
+          <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded border transition-colors ${getChartButtonClass()}`} title="Abrir gráfico">
+            <ChartMonitorIcon className="w-3.5 h-3.5" />
           </button>
           {currentPrice > 0 && <span className="text-xs font-mono text-neutral-300 ml-auto">${currentPrice.toLocaleString()}</span>}
         </div>
