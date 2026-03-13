@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { BarChart2, Bookmark, X } from 'lucide-react';
 import { Instrument, MultiTimeframeAnalysis, SignalType, ActionType, Timeframe, Strategy, Candlestick, TradeSetup } from '../types';
 import { fetchTimeSeries, PriceStore, resampleCandles, isMarketOpen } from '../services/twelveDataService';
 import { audioService } from '../utils/audioService';
@@ -219,15 +220,15 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
   const getActionColor = (action?: ActionType, score: number = 0, mainSignal?: SignalType) => {
     if (isLoading) return 'text-neutral-700 border-white/5';
-    if (action === ActionType.MERCADO_CERRADO) return 'text-neutral-500 bg-black/40 border-neutral-800/50';
+    if (action === ActionType.MERCADO_CERRADO) return 'text-neutral-600 bg-neutral-900 border-neutral-800';
     if (action === ActionType.ENTRAR_AHORA && score >= 85) {
-        if (mainSignal === SignalType.SALE) return 'text-rose-400 bg-rose-500/20 border-rose-400 precision-alert-blink font-black ring-1 ring-rose-500/50';
-        return 'text-emerald-400 bg-emerald-500/20 border-emerald-400 precision-alert-blink font-black ring-1 ring-emerald-500/50';
+        if (mainSignal === SignalType.SALE) return 'text-rose-400 bg-rose-500/10 border-rose-500/40';
+        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/40';
     }
     switch(action) {
-      case ActionType.SALIR: return 'text-rose-400 bg-rose-500/20 border-rose-400 font-black precision-alert-blink ring-1 ring-rose-500/50';
-      case ActionType.ESPERAR: return 'text-amber-400 bg-amber-500/10 border-amber-400/50';
-      default: return 'text-neutral-500 bg-white/5 border-white/5';
+      case ActionType.SALIR: return 'text-rose-400 bg-rose-500/10 border-rose-500/40';
+      case ActionType.ESPERAR: return 'text-neutral-400 bg-neutral-800/50 border-neutral-700';
+      default: return 'text-neutral-600 bg-transparent border-neutral-800';
     }
   };
 
@@ -235,7 +236,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     if (action === ActionType.ENTRAR_AHORA && score >= 85) {
       return mainSignal === SignalType.SALE ? 'VENDER' : 'COMPRAR';
     }
-    if (action === ActionType.MERCADO_CERRADO) return '🔒 CERRADO';
+    if (action === ActionType.MERCADO_CERRADO) return 'CERRADO';
     return action || 'STANDBY';
   };
 
@@ -252,33 +253,11 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     return 'text-amber-400'; // High quality base
   };
 
-  const getSignalQualityMessage = (profitValue: string, unit: string, rr?: number) => {
+  const getSignalQualityMessage = (rr?: number) => {
     if (!rr) return null;
-    
-    const value = parseFloat(profitValue);
-    let quality = '';
-    let emoji = '';
-    let bgColor = '';
-    let textColor = '';
-    
-    if (rr >= 2.5) {
-      quality = 'CONFIGURACIÓN PREMIUM';
-      emoji = '💎';
-      bgColor = 'bg-cyan-500/10';
-      textColor = 'text-cyan-300';
-    } else if (rr >= 2.0) {
-      quality = 'ALTA CALIDAD';
-      emoji = '⭐';
-      bgColor = 'bg-emerald-500/10';
-      textColor = 'text-emerald-400';
-    } else {
-      quality = 'BUENA OPORTUNIDAD';
-      emoji = '✓';
-      bgColor = 'bg-amber-500/10';
-      textColor = 'text-amber-400';
-    }
-    
-    return { quality, emoji, bgColor, textColor };
+    if (rr >= 2.5) return { label: 'A+  Setup premium', color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/5' };
+    if (rr >= 2.0) return { label: 'A   Alta calidad', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' };
+    return { label: 'B   Estándar', color: 'text-neutral-400 border-neutral-700 bg-transparent' };
   };
 
   const getSignalDotColor = (tf: Timeframe) => {
@@ -365,9 +344,9 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
       currentPL: currentPL.toFixed(2) + '%'
     });
     
-    if (tpReached) return { status: 'achieved', label: 'TP ALCANZADO', color: 'bg-cyan-500/30 text-cyan-300 border-cyan-400 animate-pulse' };
-    if (nearTP) return { status: 'near', label: 'CERCA TP', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' };
-    if (failed) return { status: 'failed', label: 'STOP SUGERIDO', color: 'bg-rose-500/30 text-rose-300 border-rose-400 animate-pulse' };
+    if (tpReached) return { status: 'achieved', label: 'Objetivo alcanzado', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/5' };
+    if (nearTP) return { status: 'near', label: 'Cerca del objetivo', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' };
+    if (failed) return { status: 'failed', label: 'Stop sugerido', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' };
     
     return null;
   };
@@ -381,22 +360,22 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
   const getChartButtonClass = () => {
     if (chartStatus === 'visible') {
-      return 'bg-emerald-500/20 text-emerald-400';
+      return 'text-neutral-200';
     }
     if (chartStatus === 'minimized') {
-      return 'bg-amber-500/20 text-amber-400 animate-pulse';
+      return 'text-neutral-400';
     }
-    return 'hover:bg-emerald-500/20 text-neutral-500 group-hover:text-emerald-400';
+    return 'text-neutral-700 hover:text-neutral-400';
   };
 
   return (
-    <div className={`flex items-center justify-between p-3 px-4 rounded-2xl border transition-all duration-500 
-      ${isBookmarked ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-white/5'}
-      hover:bg-white/[0.06] hover:border-white/10`}>
+    <div className={`flex items-center justify-between p-3 px-4 rounded-xl border transition-colors duration-200
+      ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
+      hover:bg-white/[0.04] hover:border-white/10`}>
       
       <div className="flex items-center justify-center w-16">
-        <div className="h-7 w-12 rounded-full transition-all duration-300 flex items-center p-1 bg-neutral-800 border border-white/5">
-          <div className={`h-5 w-5 rounded-full shadow-lg transition-all duration-500 ${isLoading ? 'bg-amber-500 animate-pulse' : (!marketOpen ? 'bg-neutral-600 translate-x-0' : 'bg-emerald-500 translate-x-5')}`} />
+        <div className="h-6 w-10 rounded-full transition-all duration-200 flex items-center p-0.5 bg-neutral-900 border border-neutral-800">
+          <div className={`h-5 w-5 rounded-full transition-all duration-300 ${isLoading ? 'bg-neutral-600 translate-x-0' : (!marketOpen ? 'bg-neutral-700 translate-x-0' : 'bg-emerald-500 translate-x-4')}`} />
         </div>
       </div>
 
@@ -404,37 +383,37 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         <div className="flex items-center space-x-2">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-white text-lg tracking-tight">{instrument.symbol}</span>
+                <span className="font-mono text-white text-sm tracking-tight">{instrument.symbol}</span>
                 {newSignalTriggerId === globalRefreshTrigger && (
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-cyan-400 text-black animate-pulse">
+                    <span className="px-1.5 py-0.5 rounded text-[8px] uppercase tracking-widest bg-cyan-500/15 text-cyan-400 border border-cyan-500/25">
                         NOW
                     </span>
                 )}
             </div>
             <span className="text-[9px] text-neutral-500 font-medium leading-none mt-0.5">{instrument.name}</span>
           </div>
-          <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1.5 rounded-lg transition-colors group cursor-pointer ${getChartButtonClass()}`} title="Abrir Gráfico">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+          <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded transition-colors ${getChartButtonClass()}`} title="Abrir gráfico">
+            <BarChart2 className="w-3.5 h-3.5" />
           </button>
-          {currentPrice > 0 && <span className="text-[13px] font-mono text-white/90 font-bold ml-auto">${currentPrice.toLocaleString()}</span>}
+          {currentPrice > 0 && <span className="text-xs font-mono text-neutral-300 ml-auto">${currentPrice.toLocaleString()}</span>}
         </div>
-        <span className="text-[8px] text-neutral-600 font-black uppercase tracking-widest">{instrument.type}</span>
+        <span className="text-[9px] text-neutral-700 uppercase tracking-widest">{instrument.type}</span>
       </div>
 
       <div className="flex space-x-4 w-1/5 justify-center">
         {(['4h', '1h', '15min', '5min'] as Timeframe[]).map(tf => (
           <div key={tf} className="flex flex-col items-center">
-            <span className="text-[7px] text-neutral-500 font-bold mb-1 uppercase">{tf}</span>
-            <div className={`h-2 w-8 rounded-full transition-all duration-700 ${getSignalDotColor(tf)}`}></div>
+            <span className="text-[8px] text-neutral-600 mb-1 uppercase">{tf}</span>
+            <div className={`h-1 w-7 rounded-sm transition-colors duration-200 ${getSignalDotColor(tf)}`}></div>
           </div>
         ))}
       </div>
 
       <div className="flex flex-col items-center w-16">
-        <span className={`text-xl font-mono font-black ${getScoreColor(analysis?.powerScore || 0)}`}>
-            {isLoading ? '---' : `${analysis?.powerScore || 0}`}
+        <span className={`text-base font-mono ${getScoreColor(analysis?.powerScore || 0)}`}>
+            {isLoading ? '--' : `${analysis?.powerScore || 0}`}
         </span>
-        <span className="text-[7px] text-neutral-700 font-bold uppercase tracking-tighter">Score</span>
+        <span className="text-[8px] text-neutral-700 uppercase tracking-wider">Score</span>
       </div>
 
       <div className="w-48">
@@ -442,30 +421,30 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
             <div className="flex flex-col gap-1">
               <button
                 onClick={() => handleCopyTradeSetup(tradeSetup)}
-                className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono w-full text-left group hover:bg-white/10 transition-colors"
+                className="flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-[10px] font-mono w-full text-left hover:border-neutral-700 transition-colors"
               >
                 {copyStatus ? (
-                  <div className="w-full text-center flex-grow">
-                    <span className="text-emerald-400 font-bold text-xs">¡COPIADO E & P!</span>
+                  <div className="w-full text-center">
+                    <span className="text-neutral-300 text-[10px]">Copiado</span>
                   </div>
                 ) : (
                   <>
                     <div className="space-y-1 flex-grow">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-neutral-500 group-hover:text-neutral-300 transition-colors">E:</span>
-                        <span className="text-emerald-400 font-bold">{tradeSetup.entry.toFixed(4)}</span>
+                        <span className="text-neutral-600">E</span>
+                        <span className="text-neutral-200">{tradeSetup.entry.toFixed(4)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-neutral-500 group-hover:text-neutral-300 transition-colors">P:</span>
-                        <span className="text-amber-400 font-bold">{tradeSetup.tp.toFixed(4)}</span>
+                        <span className="text-neutral-600">TP</span>
+                        <span className="text-neutral-200">{tradeSetup.tp.toFixed(4)}</span>
                       </div>
                     </div>
                     {profitInfo && tradeSetup.rr && (
-                      <div className="flex flex-col items-center justify-center pl-3 border-l border-white/10 ml-3">
-                        <span className={`text-xl font-black leading-none ${getRRColor(tradeSetup.rr)}`}>
+                      <div className="flex flex-col items-center justify-center pl-3 border-l border-neutral-800 ml-3">
+                        <span className={`text-base font-mono leading-none ${getRRColor(tradeSetup.rr)}`}>
                           {profitInfo.value}
                         </span>
-                        <span className="text-[8px] font-bold text-neutral-500 leading-none tracking-tighter mt-0.5">
+                        <span className="text-[8px] text-neutral-600 leading-none mt-0.5">
                           {profitInfo.unit}
                         </span>
                       </div>
@@ -474,14 +453,11 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
                 )}
               </button>
               
-              {profitInfo && tradeSetup.rr && !copyStatus && (() => {
-                const qualityMsg = getSignalQualityMessage(profitInfo.value, profitInfo.unit, tradeSetup.rr);
+              {tradeSetup.rr && !copyStatus && (() => {
+                const qualityMsg = getSignalQualityMessage(tradeSetup.rr);
                 return qualityMsg ? (
-                  <div className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-md border ${qualityMsg.bgColor} ${qualityMsg.textColor} border-current/30`}>
-                    <span className="text-sm">{qualityMsg.emoji}</span>
-                    <span className="text-[8px] font-black uppercase tracking-wider">
-                      {qualityMsg.quality}
-                    </span>
+                  <div className={`flex items-center px-2 py-1 rounded border text-[9px] font-mono ${qualityMsg.color}`}>
+                    {qualityMsg.label}
                   </div>
                 ) : null;
               })()}
@@ -490,22 +466,24 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
       </div>
 
       <div className="flex flex-col items-center justify-center w-24 text-center">
-        {marketOpen ? <span className="text-[11px] font-black uppercase text-emerald-500 tracking-wider">ABIERTO</span> : <span className="text-[11px] font-black uppercase text-neutral-600 tracking-wider">CERRADO</span>}
+        {marketOpen 
+          ? <span className="text-[9px] uppercase text-emerald-500 tracking-widest">Abierto</span> 
+          : <span className="text-[9px] uppercase text-neutral-700 tracking-widest">Cerrado</span>}
       </div>
 
       <div className="flex items-center justify-center w-48 space-x-2">
         {isLoading && !activeTrade ? (
-            <div className={`px-4 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest w-[110px] text-center ${getActionColor()}`}>
-                <div className="flex items-center justify-center space-x-2"><span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce"></span><span>SCAN</span></div>
+            <div className="px-4 py-1.5 rounded border border-neutral-800 text-[9px] text-neutral-600 w-[110px] text-center">
+                Escaneando...
             </div>
         ) : (
             <div className="flex items-center space-x-2">
                 <button
                     onClick={isHighSignal && !activeTrade ? () => handleTakeTrade(analysis.mainSignal === SignalType.SALE ? 'sell' : 'buy') : undefined}
                     disabled={!!activeTrade}
-                    className={`px-4 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest w-[110px] text-center transition-all duration-300
+                    className={`px-4 py-1.5 rounded border text-[9px] uppercase tracking-wider w-[110px] text-center transition-colors duration-150
                     ${getActionColor(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
-                    ${activeTrade ? 'opacity-40 cursor-not-allowed' : ''}
+                    ${activeTrade ? 'opacity-30 cursor-not-allowed' : ''}
                     `}
                 >
                     {getActionText(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
@@ -548,8 +526,8 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
       </div>
 
       <div className="w-10 flex justify-center items-center">
-        <button onClick={toggleBookmark} className={`transition-all duration-300 transform hover:scale-125 ${isBookmarked ? 'text-emerald-500' : 'text-neutral-800 hover:text-neutral-600'}`}>
-          <svg className="w-6 h-6" fill={isBookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
+        <button onClick={toggleBookmark} className={`p-1 rounded transition-colors ${isBookmarked ? 'text-neutral-300' : 'text-neutral-800 hover:text-neutral-600'}`}>
+          <Bookmark className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} />
         </button>
       </div>
     </div>
