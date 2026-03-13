@@ -300,6 +300,36 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     };
   };
 
+  const calculateTPProgress = () => {
+    if (!activeTrade || !currentPrice || !activeTrade.tp) return null;
+    
+    const isBuy = activeTrade.direction === 'buy';
+    const totalDistance = Math.abs(activeTrade.tp - activeTrade.entryPrice);
+    const currentDistance = isBuy 
+      ? (currentPrice - activeTrade.entryPrice)
+      : (activeTrade.entryPrice - currentPrice);
+    
+    // Calcular progreso (puede ser negativo si va en contra)
+    const progress = (currentDistance / totalDistance) * 100;
+    const clampedProgress = Math.max(0, Math.min(100, progress)); // 0-100%
+    
+    // Determinar color basado en progreso
+    let barColor = '';
+    if (progress >= 100) barColor = 'bg-cyan-400'; // TP alcanzado
+    else if (progress >= 75) barColor = 'bg-emerald-400'; // Muy cerca
+    else if (progress >= 50) barColor = 'bg-amber-400'; // A mitad
+    else if (progress >= 25) barColor = 'bg-yellow-500'; // Avanzando
+    else if (progress >= 0) barColor = 'bg-orange-500'; // Poco avance
+    else barColor = 'bg-rose-500'; // Perdiendo
+    
+    return {
+      progress: clampedProgress,
+      rawProgress: progress,
+      barColor,
+      distanceRemaining: totalDistance - currentDistance
+    };
+  };
+
   const checkTPStatus = () => {
     if (!activeTrade || !currentPrice || !activeTrade.tp) {
       // Debug: verificar por qué no hay TP
@@ -345,6 +375,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   const marketOpen = isMarketOpen(instrument.type, instrument.symbol);
   const pl = calculatePL();
   const tpStatus = checkTPStatus();
+  const tpProgress = calculateTPProgress();
   const isHighSignal = analysis?.action === ActionType.ENTRAR_AHORA && (analysis?.powerScore || 0) >= 85;
   const profitInfo = tradeSetup ? calculateProfitDisplay(tradeSetup.tp, tradeSetup.entry, instrument) : null;
 
@@ -481,17 +512,37 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
                 </button>
 
                 {activeTrade && (
-                    <div className="flex items-center justify-center space-x-2">
-                        {tpStatus && (
-                            <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${tpStatus.color}`}>
-                                {tpStatus.label}
+                    <div className="flex flex-col items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center space-x-2">
+                            {tpStatus && (
+                                <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${tpStatus.color}`}>
+                                    {tpStatus.label}
+                                </div>
+                            )}
+                            <div className={`flex items-center gap-1 text-xs font-mono font-bold px-3 py-1 rounded-full border ${pl.color}`}>
+                                <span className="text-sm">{pl.prefix}</span>
+                                <span>{pl.value.toFixed(2)}%</span>
+                            </div>
+                            <button onClick={handleCloseTrade} title="Close Trade" className="p-1.5 rounded-full bg-neutral-700/50 text-neutral-400 hover:bg-rose-500/30 hover:text-rose-300 transition-colors">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        
+                        {tpProgress && (
+                            <div className="w-full flex items-center gap-2">
+                                <div className="flex-grow h-1.5 bg-neutral-800/50 rounded-full overflow-hidden border border-white/5">
+                                    <div 
+                                        className={`h-full ${tpProgress.barColor} transition-all duration-500 ease-out`}
+                                        style={{ width: `${tpProgress.progress}%` }}
+                                    />
+                                </div>
+                                <span className="text-[9px] font-bold text-neutral-500 tabular-nums min-w-[32px] text-right">
+                                    {tpProgress.rawProgress >= 0 ? Math.round(tpProgress.progress) : 0}%
+                                </span>
                             </div>
                         )}
-                        <div className={`flex items-center gap-1 text-xs font-mono font-bold px-3 py-1 rounded-full border ${pl.color}`}>
-                            <span className="text-sm">{pl.prefix}</span>
-                            <span>{pl.value.toFixed(2)}%</span>
-                        </div>
-                        <button onClick={handleCloseTrade} title="Close Trade" className="p-1.5 rounded-full bg-neutral-700/50 text-neutral-400 hover:bg-rose-500/30 hover:text-rose-300 transition-colors">
+                    </div>
+                )}
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
