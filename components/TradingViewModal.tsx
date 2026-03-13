@@ -11,12 +11,28 @@ interface TradingViewModalProps {
 const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisible, onMinimize, onClose }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMaximized, setIsMaximized] = useState(false);
+  const initializedSymbolRef = useRef<string | null>(null);
+
+  const handleClose = () => {
+    // Resetear el ref cuando se cierra (X) para permitir reinicialización limpia
+    initializedSymbolRef.current = null;
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+    onClose();
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
     
-    // The TradingView script will re-initialize itself when props change, so we clear the container first.
+    // Solo reinicializar si el símbolo cambió (no reinicializar al minimizar/maximizar)
+    if (initializedSymbolRef.current === instrument.symbol) {
+      return; // Widget ya inicializado para este símbolo, preservar dibujos
+    }
+    
+    // Nuevo símbolo: limpiar y reinicializar
     containerRef.current.innerHTML = '';
+    initializedSymbolRef.current = instrument.symbol;
 
     const { symbol, type } = instrument;
     let tvSymbol = symbol.replace('/', '');
@@ -155,7 +171,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
                )}
             </button>
             <button 
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 text-neutral-400 hover:text-white hover:bg-rose-500/50 rounded-md transition-colors"
               title="Close"
             >
