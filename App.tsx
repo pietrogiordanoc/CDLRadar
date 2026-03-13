@@ -176,7 +176,7 @@ const App: React.FC = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-white uppercase">CDLRadar V5.7</h1>
+              <h1 className="text-2xl font-black tracking-tighter text-white uppercase">CDLRadar V5.8</h1>
               <div className="flex items-center space-x-2">
                 <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Live Market Scanner</span>

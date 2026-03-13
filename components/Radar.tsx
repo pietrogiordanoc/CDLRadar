@@ -122,7 +122,7 @@ const Radar: React.FC<RadarProps> = ({ analyses, onClose }) => {
       `}</style>
       
       <div className="absolute top-5 left-8 text-white uppercase">
-        <h2 className="text-2xl font-bold tracking-widest">Radar Financiero <span className="text-emerald-400">v5.7</span></h2>
+        <h2 className="text-2xl font-bold tracking-widest">Radar Financiero <span className="text-emerald-400">v5.8</span></h2>
       </div>
 
       <div className="absolute top-[12%] left-8 text-white space-y-4 w-64">
