@@ -272,18 +272,39 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   };
 
   const checkTPStatus = () => {
-    if (!activeTrade || !currentPrice || !activeTrade.tp) return null;
+    if (!activeTrade || !currentPrice || !activeTrade.tp) {
+      // Debug: verificar por qué no hay TP
+      if (activeTrade && !activeTrade.tp) {
+        console.log(`[${instrument.symbol}] Trade activo SIN TP guardado:`, { 
+          entryPrice: activeTrade.entryPrice, 
+          direction: activeTrade.direction,
+          tp: activeTrade.tp 
+        });
+      }
+      return null;
+    }
     
     const isBuy = activeTrade.direction === 'buy';
     const tpReached = isBuy ? currentPrice >= activeTrade.tp : currentPrice <= activeTrade.tp;
     
     // Verificar si está cerca del TP (dentro del 0.1%)
     const distanceToTP = Math.abs(currentPrice - activeTrade.tp) / activeTrade.tp * 100;
-    const nearTP = distanceToTP <= 0.1;
+    const nearTP = distanceToTP <= 0.1 && !tpReached;
     
     // Verificar si falló (precio se movió 2% en contra)
     const currentPL = ((currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice) * 100 * (isBuy ? 1 : -1);
     const failed = currentPL <= -2.0;
+    
+    // Debug logging
+    console.log(`[${instrument.symbol}] TP Check:`, {
+      currentPrice,
+      entryPrice: activeTrade.entryPrice,
+      tp: activeTrade.tp,
+      direction: activeTrade.direction,
+      tpReached,
+      distanceToTP: distanceToTP.toFixed(3) + '%',
+      currentPL: currentPL.toFixed(2) + '%'
+    });
     
     if (tpReached) return { status: 'achieved', label: 'TP ALCANZADO', color: 'bg-cyan-500/30 text-cyan-300 border-cyan-400 animate-pulse' };
     if (nearTP) return { status: 'near', label: 'CERCA TP', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' };
