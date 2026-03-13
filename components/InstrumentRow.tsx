@@ -422,57 +422,59 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         )}
       </div>
 
-      <div className="flex flex-col items-center justify-center w-[78px] shrink-0 text-center">
+      <div className="flex flex-col items-center justify-center w-[78px] shrink-0 text-center ml-auto">
         {marketOpen 
           ? <span className="text-[9px] uppercase text-emerald-500 tracking-widest">Abierto</span> 
           : <span className="text-[9px] uppercase text-neutral-700 tracking-widest">Cerrado</span>}
       </div>
 
-      <div className="flex items-center justify-center w-[320px] shrink-0">
+      <div className="w-[120px] shrink-0 flex items-center justify-center">
         {isLoading && !activeTrade ? (
-            <div className="px-4 py-1.5 rounded border border-neutral-800 text-[9px] text-neutral-600 w-[110px] text-center">
-                Escaneando...
-            </div>
+          <div className="w-[110px] px-4 py-1.5 rounded border border-neutral-800 text-[9px] text-neutral-600 text-center">
+            Escaneando...
+          </div>
         ) : (
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={isHighSignal && !activeTrade ? () => handleTakeTrade(analysis.mainSignal === SignalType.SALE ? 'sell' : 'buy') : undefined}
-                    disabled={!!activeTrade}
-                    className={`px-4 py-1.5 rounded border text-[9px] uppercase tracking-wider w-[110px] text-center transition-colors duration-150
-                    ${getActionColor(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
-                    ${activeTrade ? 'opacity-30 cursor-not-allowed' : ''}
-                    `}
-                >
-                    {getActionText(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
-                </button>
+          <button
+            onClick={isHighSignal && !activeTrade ? () => handleTakeTrade(analysis.mainSignal === SignalType.SALE ? 'sell' : 'buy') : undefined}
+            disabled={!!activeTrade}
+            className={`w-[110px] px-4 py-1.5 rounded border text-[9px] uppercase tracking-wider text-center transition-colors duration-150
+            ${getActionColor(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
+            ${activeTrade ? 'opacity-30 cursor-not-allowed' : ''}
+            `}
+          >
+            {getActionText(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
+          </button>
+        )}
+      </div>
 
-                {activeTrade && (
-                  <div className="flex flex-col items-center justify-center gap-1.5 min-w-[180px]">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className={`flex items-center text-xs font-mono px-2 py-0.5 rounded border ${pl.color}`}>
-                        <span>{pl.prefix}{pl.value.toFixed(2)}%</span>
-                      </div>
-                      <button onClick={handleCloseTrade} title="Cerrar trade" className="p-1 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                        </div>
-                        
-                        {tpProgress && (
-                      <div className="w-full flex items-center gap-2">
-                        <div className="flex-grow h-px bg-neutral-800 rounded-full overflow-hidden">
-                                    <div 
-                            className={`h-full ${tpProgress.barColor} transition-all duration-500`}
-                                        style={{ width: `${tpProgress.progress}%` }}
-                                    />
-                                </div>
-                        <span className="text-[9px] text-neutral-600 font-mono tabular-nums min-w-[28px] text-right">
-                                    {tpProgress.rawProgress >= 0 ? Math.round(tpProgress.progress) : 0}%
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                )}
+      <div className="w-[190px] shrink-0 flex items-center justify-center">
+        {activeTrade ? (
+          <div className="flex flex-col items-center justify-center gap-1.5 w-full">
+            <div className="flex items-center justify-center gap-2">
+              <div className={`flex items-center text-xs font-mono px-2 py-0.5 rounded border ${pl.color}`}>
+                <span>{pl.prefix}{pl.value.toFixed(2)}%</span>
+              </div>
+              <button onClick={handleCloseTrade} title="Cerrar trade" className="p-1 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors">
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
+
+            {tpProgress && (
+              <div className="w-full flex items-center gap-2">
+                <div className="flex-grow h-px bg-neutral-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${tpProgress.barColor} transition-all duration-500`}
+                    style={{ width: `${tpProgress.progress}%` }}
+                  />
+                </div>
+                <span className="text-[9px] text-neutral-600 font-mono tabular-nums min-w-[28px] text-right">
+                  {tpProgress.rawProgress >= 0 ? Math.round(tpProgress.progress) : 0}%
+                </span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="h-[22px]" />
         )}
       </div>
 
