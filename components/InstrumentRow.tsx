@@ -252,6 +252,35 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     return 'text-amber-400'; // High quality base
   };
 
+  const getSignalQualityMessage = (profitValue: string, unit: string, rr?: number) => {
+    if (!rr) return null;
+    
+    const value = parseFloat(profitValue);
+    let quality = '';
+    let emoji = '';
+    let bgColor = '';
+    let textColor = '';
+    
+    if (rr >= 2.5) {
+      quality = 'CONFIGURACIÓN PREMIUM';
+      emoji = '💎';
+      bgColor = 'bg-cyan-500/10';
+      textColor = 'text-cyan-300';
+    } else if (rr >= 2.0) {
+      quality = 'ALTA CALIDAD';
+      emoji = '⭐';
+      bgColor = 'bg-emerald-500/10';
+      textColor = 'text-emerald-400';
+    } else {
+      quality = 'BUENA OPORTUNIDAD';
+      emoji = '✓';
+      bgColor = 'bg-amber-500/10';
+      textColor = 'text-amber-400';
+    }
+    
+    return { quality, emoji, bgColor, textColor };
+  };
+
   const getSignalDotColor = (tf: Timeframe) => {
     if (isLoading || !analysis || !analysis.signals) return 'bg-neutral-800';
     const sig = analysis.signals[tf];
@@ -379,39 +408,53 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
       <div className="w-48">
         {tradeSetup && isHighSignal && (
-            <button
-              onClick={() => handleCopyTradeSetup(tradeSetup)}
-              className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono h-full w-full text-left group hover:bg-white/10 transition-colors"
-            >
-              {copyStatus ? (
-                <div className="w-full text-center flex-grow">
-                  <span className="text-emerald-400 font-bold text-xs">¡COPIADO E & P!</span>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-1 flex-grow">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-neutral-500 group-hover:text-neutral-300 transition-colors">E:</span>
-                      <span className="text-emerald-400 font-bold">{tradeSetup.entry.toFixed(4)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-neutral-500 group-hover:text-neutral-300 transition-colors">P:</span>
-                      <span className="text-amber-400 font-bold">{tradeSetup.tp.toFixed(4)}</span>
-                    </div>
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => handleCopyTradeSetup(tradeSetup)}
+                className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono w-full text-left group hover:bg-white/10 transition-colors"
+              >
+                {copyStatus ? (
+                  <div className="w-full text-center flex-grow">
+                    <span className="text-emerald-400 font-bold text-xs">¡COPIADO E & P!</span>
                   </div>
-                  {profitInfo && tradeSetup.rr && (
-                    <div className="flex flex-col items-center justify-center pl-3 border-l border-white/10 ml-3">
-                      <span className={`text-xl font-black leading-none ${getRRColor(tradeSetup.rr)}`}>
-                        {profitInfo.value}
-                      </span>
-                      <span className="text-[8px] font-bold text-neutral-500 leading-none tracking-tighter mt-0.5">
-                        {profitInfo.unit}
-                      </span>
+                ) : (
+                  <>
+                    <div className="space-y-1 flex-grow">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-neutral-500 group-hover:text-neutral-300 transition-colors">E:</span>
+                        <span className="text-emerald-400 font-bold">{tradeSetup.entry.toFixed(4)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-neutral-500 group-hover:text-neutral-300 transition-colors">P:</span>
+                        <span className="text-amber-400 font-bold">{tradeSetup.tp.toFixed(4)}</span>
+                      </div>
                     </div>
-                  )}
-                </>
-              )}
-            </button>
+                    {profitInfo && tradeSetup.rr && (
+                      <div className="flex flex-col items-center justify-center pl-3 border-l border-white/10 ml-3">
+                        <span className={`text-xl font-black leading-none ${getRRColor(tradeSetup.rr)}`}>
+                          {profitInfo.value}
+                        </span>
+                        <span className="text-[8px] font-bold text-neutral-500 leading-none tracking-tighter mt-0.5">
+                          {profitInfo.unit}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </button>
+              
+              {profitInfo && tradeSetup.rr && !copyStatus && (() => {
+                const qualityMsg = getSignalQualityMessage(profitInfo.value, profitInfo.unit, tradeSetup.rr);
+                return qualityMsg ? (
+                  <div className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-md border ${qualityMsg.bgColor} ${qualityMsg.textColor} border-current/30`}>
+                    <span className="text-sm">{qualityMsg.emoji}</span>
+                    <span className="text-[8px] font-black uppercase tracking-wider">
+                      {qualityMsg.quality}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
+            </div>
         )}
       </div>
 
