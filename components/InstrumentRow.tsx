@@ -359,7 +359,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
             <span className="text-[9px] text-neutral-500 font-medium leading-none mt-0.5">{instrument.name}</span>
           </div>
           <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded border transition-colors ${getChartButtonClass()}`} title="Abrir gráfico">
-            <ChartMonitorIcon className="w-3.5 h-3.5" />
+            <ChartMonitorIcon className="w-7 h-7" />
           </button>
           {currentPrice > 0 && <span className="text-xs font-mono text-neutral-300 ml-auto">${currentPrice.toLocaleString()}</span>}
         </div>
