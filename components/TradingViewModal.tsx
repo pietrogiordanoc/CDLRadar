@@ -56,7 +56,10 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
         // Mapeo específico por disponibilidad en exchanges
         if (['BTC', 'ETH', 'SOL', 'LINK', 'AAVE', 'UNI', 'ALGO', 'XLM'].some(s => tvSymbol.startsWith(s))) {
           tvSymbol = `COINBASE:${tvSymbol}`;
-        } else if (['BNB', 'XRP', 'ADA', 'DOT', 'FIL', 'TRX', 'ETC', 'BCH'].some(s => tvSymbol.startsWith(s))) {
+        } else if (tvSymbol.startsWith('DOT')) {
+          // DOT tiene mejor liquidez en Kraken
+          tvSymbol = `KRAKEN:${tvSymbol}`;
+        } else if (['BNB', 'XRP', 'ADA', 'FIL', 'TRX', 'ETC', 'BCH'].some(s => tvSymbol.startsWith(s))) {
           tvSymbol = `BINANCE:${tvSymbol}`;
         } else if (['XTZ', 'INJ', 'OP', 'ARB', 'APT', 'SUSHI', 'ICP', 'NEAR'].some(s => tvSymbol.startsWith(s))) {
           tvSymbol = `BINANCE:${tvSymbol}`;
