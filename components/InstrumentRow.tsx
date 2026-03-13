@@ -20,6 +20,7 @@ interface InstrumentRowProps {
 type ActiveTrade = {
   entryPrice: number;
   direction: 'buy' | 'sell';
+  tp?: number;
 };
 
 const calculateProfitDisplay = (tp: number, entry: number, instrument: Instrument): { value: string, unit: string } => {
@@ -204,7 +205,11 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   }, [globalRefreshTrigger, performAnalysis, activeTrade]);
   
   const handleTakeTrade = (direction: 'buy' | 'sell') => {
-    setActiveTrade({ entryPrice: currentPrice, direction });
+    setActiveTrade({ 
+      entryPrice: currentPrice, 
+      direction,
+      tp: tradeSetup?.tp
+    });
   };
 
   const handleCloseTrade = () => {
@@ -266,8 +271,30 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     };
   };
 
+  const checkTPStatus = () => {
+    if (!activeTrade || !currentPrice || !activeTrade.tp) return null;
+    
+    const isBuy = activeTrade.direction === 'buy';
+    const tpReached = isBuy ? currentPrice >= activeTrade.tp : currentPrice <= activeTrade.tp;
+    
+    // Verificar si está cerca del TP (dentro del 0.1%)
+    const distanceToTP = Math.abs(currentPrice - activeTrade.tp) / activeTrade.tp * 100;
+    const nearTP = distanceToTP <= 0.1;
+    
+    // Verificar si falló (precio se movió 2% en contra)
+    const currentPL = ((currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice) * 100 * (isBuy ? 1 : -1);
+    const failed = currentPL <= -2.0;
+    
+    if (tpReached) return { status: 'achieved', label: 'TP ALCANZADO', color: 'bg-cyan-500/30 text-cyan-300 border-cyan-400 animate-pulse' };
+    if (nearTP) return { status: 'near', label: 'CERCA TP', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' };
+    if (failed) return { status: 'failed', label: 'STOP SUGERIDO', color: 'bg-rose-500/30 text-rose-300 border-rose-400 animate-pulse' };
+    
+    return null;
+  };
+
   const marketOpen = isMarketOpen(instrument.type, instrument.symbol);
   const pl = calculatePL();
+  const tpStatus = checkTPStatus();
   const isHighSignal = analysis?.action === ActionType.ENTRAR_AHORA && (analysis?.powerScore || 0) >= 85;
   const profitInfo = tradeSetup ? calculateProfitDisplay(tradeSetup.tp, tradeSetup.entry, instrument) : null;
 
@@ -391,6 +418,11 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
                 {activeTrade && (
                     <div className="flex items-center justify-center space-x-2">
+                        {tpStatus && (
+                            <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${tpStatus.color}`}>
+                                {tpStatus.label}
+                            </div>
+                        )}
                         <div className={`flex items-center gap-1 text-xs font-mono font-bold px-3 py-1 rounded-full border ${pl.color}`}>
                             <span className="text-sm">{pl.prefix}</span>
                             <span>{pl.value.toFixed(2)}%</span>
