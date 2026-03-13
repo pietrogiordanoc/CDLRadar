@@ -62,13 +62,37 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   const lastRefreshTriggerRef = useRef<number>(GlobalAnalysisCache[instrument.id]?.trigger ?? -1);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (PriceStore[instrument.symbol]) {
-        setCurrentPrice(PriceStore[instrument.symbol]);
+    const interval = setInterval(async () => {
+      // Si hay un trade activo, consultar precio en tiempo real desde Supabase
+      if (activeTrade) {
+        try {
+          const { supabase } = await import('../services/supabaseClient');
+          const { data } = await supabase
+            .from('market_cache')
+            .select('time_series_data')
+            .eq('symbol', instrument.symbol)
+            .single();
+          
+          if (data?.time_series_data && Array.isArray(data.time_series_data) && data.time_series_data.length > 0) {
+            const latestCandle = data.time_series_data[0]; // Primer elemento es el más reciente
+            const latestPrice = parseFloat(latestCandle.close);
+            if (latestPrice > 0) {
+              setCurrentPrice(latestPrice);
+              PriceStore[instrument.symbol] = latestPrice;
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching live price for ${instrument.symbol}:`, error);
+        }
+      } else {
+        // Sin trade activo, usar PriceStore (más eficiente)
+        if (PriceStore[instrument.symbol]) {
+          setCurrentPrice(PriceStore[instrument.symbol]);
+        }
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [instrument.symbol]);
+  }, [instrument.symbol, activeTrade]);
 
   const handleCopyTradeSetup = (setup: TradeSetup) => {
     if (!setup) return;
