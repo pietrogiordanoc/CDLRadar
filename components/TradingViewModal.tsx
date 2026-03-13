@@ -35,6 +35,18 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
         if (symbol === 'SPX') tvSymbol = 'SP:SPX';
         else if (symbol === 'IXIC') tvSymbol = 'NASDAQ:IXIC';
         else if (symbol === 'DJI') tvSymbol = 'DJ:DJI';
+        else if (symbol === 'CAC') tvSymbol = 'TVC:CAC40';
+        else if (symbol === 'DAX') tvSymbol = 'XETR:DAX';
+        else if (symbol === 'FTSE') tvSymbol = 'FTSE:UKX';
+        else if (symbol === 'N225') tvSymbol = 'TVC:NI225';
+        else if (symbol === 'NDX') tvSymbol = 'NASDAQ:NDX';
+        else if (symbol === 'HSI') tvSymbol = 'HSI:HSI';
+        else if (symbol === 'KS11') tvSymbol = 'KRX:KOSPI';
+        else if (symbol === 'BVSP') tvSymbol = 'BMFBOVESPA:IBOV';
+        else if (symbol === 'STOXX50E') tvSymbol = 'STOXX:SX5E';
+        else if (symbol === 'SSEC') tvSymbol = 'SSE:000001';
+        else if (symbol === 'AXJO') tvSymbol = 'ASX:XJO';
+        else if (symbol === 'RUT') tvSymbol = 'TVC:RUT';
         else tvSymbol = `TVC:${tvSymbol}`;
         break;
       case 'crypto':
