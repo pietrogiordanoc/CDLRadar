@@ -84,23 +84,28 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const filteredInstruments = useMemo(() => {
-    let items = ALL_INSTRUMENTS;
-    if (filter !== 'all') items = items.filter(i => i.type === filter);
-    if (searchQuery) items = items.filter(i => i.symbol.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Función helper para determinar si un instrumento debe ser VISIBLE (no eliminado)
+  const isInstrumentVisible = useCallback((instrument: typeof ALL_INSTRUMENTS[0]) => {
+    // Filtro por categoría
+    if (filter !== 'all' && instrument.type !== filter) return false;
     
-    const currentAnalyses = analysesRef.current;
-
+    // Filtro por búsqueda
+    if (searchQuery && !instrument.symbol.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    
     // Filtro por acción
     if (actionFilter !== 'all') {
-      items = items.filter(i => {
-        const analysis = currentAnalyses[i.id];
-        if (actionFilter === 'entrar') return analysis?.action === ActionType.ENTRAR_AHORA;
-        if (actionFilter === 'salir') return analysis?.action === ActionType.SALIR;
-        if (actionFilter === 'esperar') return analysis?.action === ActionType.ESPERAR || analysis?.action === ActionType.NADA;
-        return true;
-      });
+      const analysis = analysesRef.current[instrument.id];
+      if (actionFilter === 'entrar' && analysis?.action !== ActionType.ENTRAR_AHORA) return false;
+      if (actionFilter === 'salir' && analysis?.action !== ActionType.SALIR) return false;
+      if (actionFilter === 'esperar' && analysis?.action !== ActionType.ESPERAR && analysis?.action !== ActionType.NADA) return false;
     }
+    
+    return true;
+  }, [filter, searchQuery, actionFilter, forceUpdateTrigger]);
+
+  const sortedInstruments = useMemo(() => {
+    const items = ALL_INSTRUMENTS;
+    const currentAnalyses = analysesRef.current;
 
     return [...items].sort((a, b) => {
       const analysisA = currentAnalyses[a.id];
@@ -154,7 +159,7 @@ const App: React.FC = () => {
       
       return (analysisB?.powerScore || 0) - (analysisA?.powerScore || 0);
     });
-  }, [filter, actionFilter, searchQuery, sortConfig, refreshTrigger, forceUpdateTrigger]);
+  }, [sortConfig, refreshTrigger, forceUpdateTrigger]);
 
   return (
     <div className="min-h-screen pb-24 bg-[#050505] text-white selection:bg-emerald-500/30">
@@ -295,21 +300,25 @@ const App: React.FC = () => {
             <div className="w-10"></div>
           </div>
           
-          {filteredInstruments.map(instrument => (
-            <InstrumentRow
-              key={instrument.id}
-              instrument={instrument}
-              isConnected={true}
-              onToggleConnect={() => {}}
-              globalRefreshTrigger={refreshTrigger}
-              strategy={STRATEGIES[0]}
-              onAnalysisUpdate={handleAnalysisUpdate}
-              isTestMode={false}
-              onOpenChart={handleOpenChart}
-              chartStatus={charts[instrument.symbol]}
-            />
-          ))}
-          {filteredInstruments.length === 0 && (
+          {sortedInstruments.map(instrument => {
+            const isVisible = isInstrumentVisible(instrument);
+            return (
+              <div key={instrument.id} className={isVisible ? '' : 'hidden'}>
+                <InstrumentRow
+                  instrument={instrument}
+                  isConnected={true}
+                  onToggleConnect={() => {}}
+                  globalRefreshTrigger={refreshTrigger}
+                  strategy={STRATEGIES[0]}
+                  onAnalysisUpdate={handleAnalysisUpdate}
+                  isTestMode={false}
+                  onOpenChart={handleOpenChart}
+                  chartStatus={charts[instrument.symbol]}
+                />
+              </div>
+            );
+          })}
+          {sortedInstruments.filter(i => isInstrumentVisible(i)).length === 0 && (
             <div className="py-20 text-center text-neutral-600 font-bold uppercase tracking-widest border border-dashed border-white/5 rounded-3xl">
               No instruments found with current filters
             </div>
