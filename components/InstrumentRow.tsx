@@ -345,7 +345,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col w-[230px] shrink-0">
+      <div className="flex flex-col w-[190px] shrink-0">
         <div className="flex items-center space-x-2">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
@@ -358,12 +358,18 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
             </div>
             <span className="text-[9px] text-neutral-500 font-medium leading-none mt-0.5">{instrument.name}</span>
           </div>
-          <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded border transition-colors ${getChartButtonClass()}`} title="Abrir gráfico">
-            <ChartMonitorIcon className="w-7 h-7" />
-          </button>
-          {currentPrice > 0 && <span className="text-xs font-mono text-neutral-300 ml-auto">${currentPrice.toLocaleString()}</span>}
         </div>
         <span className="text-[9px] text-neutral-700 uppercase tracking-widest">{instrument.type}</span>
+      </div>
+
+      <div className="w-[44px] shrink-0 flex items-center justify-center">
+        <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded border transition-colors ${getChartButtonClass()}`} title="Abrir gráfico">
+          <ChartMonitorIcon className="w-7 h-7" />
+        </button>
+      </div>
+
+      <div className="w-[90px] shrink-0 text-left">
+        {currentPrice > 0 && <span className="text-xs font-mono text-neutral-300">${currentPrice.toLocaleString()}</span>}
       </div>
 
       <div className="flex space-x-4 w-[170px] shrink-0 justify-center">
