@@ -1,0 +1,5 @@
+{
+  "name": "CDLRadar V5.7",
+  "description": "- Modal TView perfecto\n-La fila organizada quedo mucho mejor\n-creado la funcion de comprar y calculo de profit falta pulir la estetica\n-Conectado a SUPABASE - ok\n-Pinto el primer bias de 5, 15, 60 y 4 hrs. - ok\n-Solucionado, Aumentadas las velas pedidas en USPABASE ------CODE\n-agregada la etiqueta NOW\n",
+  "requestFramePermissions": []
+}
