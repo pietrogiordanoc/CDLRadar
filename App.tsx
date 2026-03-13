@@ -106,18 +106,27 @@ const App: React.FC = () => {
       const analysisA = currentAnalyses[a.id];
       const analysisB = currentAnalyses[b.id];
       
-      // Obtener info de señales "NOW" del cache global
+      // 🎯 PRIORIDAD MÁXIMA: Obtener info de señales "NOW" del cache global
       const cacheA = GlobalAnalysisCache[a.id];
       const cacheB = GlobalAnalysisCache[b.id];
       const isNewSignalA = cacheA?.newSignalTriggerId === refreshTrigger;
       const isNewSignalB = cacheB?.newSignalTriggerId === refreshTrigger;
 
+      // 🚨 PRIORIDAD 1: Señales "NOW" (nuevas) van SIEMPRE arriba, sin excepción
+      if (isNewSignalA && !isNewSignalB) return -1;
+      if (!isNewSignalA && isNewSignalB) return 1;
+      
+      // 🔥 PRIORIDAD 2: Si AMBAS son "NOW", ordenar por SCORE DESCENDENTE (mayor score primero)
+      if (isNewSignalA && isNewSignalB) {
+        return (analysisB?.powerScore || 0) - (analysisA?.powerScore || 0);
+      }
+
+      // 📊 PRIORIDAD 3: Para señales NO-NOW, aplicar sortConfig si existe
       if (sortConfig) {
         const { key, direction } = sortConfig;
         let valA: any, valB: any;
         
         if (key === 'action') {
-          // Lógica cíclica solicitada: Standby -> Entrar -> Salir
           const actionOrder = {
             [ActionType.ESPERAR]: 1,
             [ActionType.NADA]: 1,
@@ -137,16 +146,7 @@ const App: React.FC = () => {
         if (valA > valB) return direction === 'asc' ? 1 : -1;
       }
 
-      // 🎯 PRIORIDAD 1: Señales "NOW" (nuevas) van SIEMPRE arriba
-      if (isNewSignalA && !isNewSignalB) return -1;
-      if (!isNewSignalA && isNewSignalB) return 1;
-      
-      // 🎯 PRIORIDAD 2: Si ambas son "NOW", ordenar por score descendente
-      if (isNewSignalA && isNewSignalB) {
-        return (analysisB?.powerScore || 0) - (analysisA?.powerScore || 0);
-      }
-
-      // Default sort by score and entries (para señales no-NOW)
+      // 🎲 PRIORIDAD 4: Default sort por score y señales de entrada
       const isEntryA = analysisA?.action === ActionType.ENTRAR_AHORA;
       const isEntryB = analysisB?.action === ActionType.ENTRAR_AHORA;
       if (isEntryA && !isEntryB) return -1;
