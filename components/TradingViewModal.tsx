@@ -96,7 +96,8 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
       "locale": "en",
       "enable_publishing": false,
       "hide_side_toolbar": false,
-      "allow_symbol_change": true,
+      "allow_symbol_change": false,
+      "save_image": false,
       "withdateranges": true,
       "details": true,
       "calendar": false,
@@ -165,7 +166,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
           </div>
         </div>
         
-        <div className="w-full flex-grow relative">
+        <div className="w-full flex-grow relative" key={`chart-${instrument.symbol}`}>
           <div ref={containerRef} className="tradingview-widget-container" style={{ height: "100%", width: "100%" }}>
             <div className="tradingview-widget-container__widget" style={{ height: "100%", width: "100%" }}></div>
           </div>
