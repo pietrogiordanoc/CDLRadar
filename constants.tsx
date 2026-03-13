@@ -44,6 +44,8 @@ export const INSTRUMENT_NAMES: Record<string, string> = {
   "XAU/USD": "Gold / US Dollar",
   "XAG/USD": "Silver / US Dollar",
   "WTI": "Crude Oil WTI",
+  "CC": "Cocoa Futures",
+  "KC": "Coffee Futures",
   "SPX": "S&P 500 Index",
   "IXIC": "Nasdaq Composite",
   "DJI": "Dow Jones Industrial",
@@ -63,7 +65,20 @@ export const INSTRUMENT_NAMES: Record<string, string> = {
   "AAPL": "Apple Inc",
   "TSLA": "Tesla Inc",
   "MSFT": "Microsoft Corp",
-  "GOOGL": "Alphabet Inc"
+  "GOOGL": "Alphabet Inc",
+  "AMZN": "Amazon Inc",
+  "TSM": "Taiwan Semiconductor",
+  "META": "Meta Platforms",
+  "AVGO": "Broadcom Inc",
+  "LRCX": "Lam Research",
+  "KLAC": "KLA Corporation",
+  "NFLX": "Netflix Inc",
+  "V": "Visa Inc",
+  "MU": "Micron Technology",
+  "ORCL": "Oracle Corp",
+  "ASML": "ASML Holding",
+  "AMD": "Advanced Micro Devices",
+  "LLY": "Eli Lilly and Company"
 };
 
 export const INSTRUMENTS_DATA: Record<string, string[]> = {

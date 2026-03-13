@@ -29,6 +29,8 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
         if (symbol === 'XAU/USD') tvSymbol = 'TVC:GOLD';
         else if (symbol === 'XAG/USD') tvSymbol = 'TVC:SILVER';
         else if (symbol === 'WTI') tvSymbol = 'TVC:USOIL';
+        else if (symbol === 'CC') tvSymbol = 'ICEUS:CC1!'; // Cocoa
+        else if (symbol === 'KC') tvSymbol = 'ICEUS:KC1!'; // Coffee
         else tvSymbol = `TVC:${tvSymbol}`;
         break;
       case 'indices':
@@ -50,10 +52,27 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
         else tvSymbol = `TVC:${tvSymbol}`;
         break;
       case 'crypto':
-        tvSymbol = `COINBASE:${tvSymbol}`;
+        tvSymbol = symbol.replace('/', '');
+        // Mapeo específico por disponibilidad en exchanges
+        if (['BTC', 'ETH', 'SOL', 'LINK', 'AAVE', 'UNI', 'ALGO', 'XLM'].some(s => tvSymbol.startsWith(s))) {
+          tvSymbol = `COINBASE:${tvSymbol}`;
+        } else if (['BNB', 'XRP', 'ADA', 'DOT', 'FIL', 'TRX', 'ETC', 'BCH'].some(s => tvSymbol.startsWith(s))) {
+          tvSymbol = `BINANCE:${tvSymbol}`;
+        } else if (['XTZ', 'INJ', 'OP', 'ARB', 'APT', 'SUSHI', 'ICP', 'NEAR'].some(s => tvSymbol.startsWith(s))) {
+          tvSymbol = `BINANCE:${tvSymbol}`;
+        } else {
+          // Default a BINANCE para tokens menos comunes
+          tvSymbol = `BINANCE:${tvSymbol}`;
+        }
         break;
       case 'stocks':
-        tvSymbol = `NASDAQ:${symbol}`;
+        // Stocks en NYSE
+        if (symbol === 'TSM') tvSymbol = 'NYSE:TSM';
+        else if (symbol === 'V') tvSymbol = 'NYSE:V';
+        else if (symbol === 'ORCL') tvSymbol = 'NYSE:ORCL';
+        else if (symbol === 'LLY') tvSymbol = 'NYSE:LLY';
+        // El resto en NASDAQ
+        else tvSymbol = `NASDAQ:${symbol}`;
         break;
       default:
         if (symbol.includes('/')) tvSymbol = `FX:${tvSymbol}`;
