@@ -309,51 +309,8 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     };
   };
 
-  const checkTPStatus = () => {
-    if (!activeTrade || !currentPrice || !activeTrade.tp) {
-      // Debug: verificar por qué no hay TP
-      if (activeTrade && !activeTrade.tp) {
-        console.log(`[${instrument.symbol}] Trade activo SIN TP guardado:`, { 
-          entryPrice: activeTrade.entryPrice, 
-          direction: activeTrade.direction,
-          tp: activeTrade.tp 
-        });
-      }
-      return null;
-    }
-    
-    const isBuy = activeTrade.direction === 'buy';
-    const tpReached = isBuy ? currentPrice >= activeTrade.tp : currentPrice <= activeTrade.tp;
-    
-    // Verificar si está cerca del TP (dentro del 0.1%)
-    const distanceToTP = Math.abs(currentPrice - activeTrade.tp) / activeTrade.tp * 100;
-    const nearTP = distanceToTP <= 0.1 && !tpReached;
-    
-    // Verificar si falló (precio se movió 2% en contra)
-    const currentPL = ((currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice) * 100 * (isBuy ? 1 : -1);
-    const failed = currentPL <= -2.0;
-    
-    // Debug logging
-    console.log(`[${instrument.symbol}] TP Check:`, {
-      currentPrice,
-      entryPrice: activeTrade.entryPrice,
-      tp: activeTrade.tp,
-      direction: activeTrade.direction,
-      tpReached,
-      distanceToTP: distanceToTP.toFixed(3) + '%',
-      currentPL: currentPL.toFixed(2) + '%'
-    });
-    
-    if (tpReached) return { status: 'achieved', label: 'Objetivo alcanzado', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/5' };
-    if (nearTP) return { status: 'near', label: 'Cerca del objetivo', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' };
-    if (failed) return { status: 'failed', label: 'Stop sugerido', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' };
-    
-    return null;
-  };
-
   const marketOpen = isMarketOpen(instrument.type, instrument.symbol);
   const pl = calculatePL();
-  const tpStatus = checkTPStatus();
   const tpProgress = calculateTPProgress();
   const isHighSignal = analysis?.action === ActionType.ENTRAR_AHORA && (analysis?.powerScore || 0) >= 85;
   const profitInfo = tradeSetup ? calculateProfitDisplay(tradeSetup.tp, tradeSetup.entry, instrument) : null;
@@ -369,7 +326,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   };
 
   return (
-    <div className={`flex items-center justify-between p-3 px-4 rounded-xl border transition-colors duration-200
+    <div className={`flex items-center justify-start gap-4 p-3 px-4 rounded-xl border transition-colors duration-200
       ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
       hover:bg-white/[0.04] hover:border-white/10`}>
       
@@ -379,7 +336,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col w-1/4">
+      <div className="flex flex-col w-[230px] shrink-0">
         <div className="flex items-center space-x-2">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
@@ -400,7 +357,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         <span className="text-[9px] text-neutral-700 uppercase tracking-widest">{instrument.type}</span>
       </div>
 
-      <div className="flex space-x-4 w-1/5 justify-center">
+      <div className="flex space-x-4 w-[170px] shrink-0 justify-center">
         {(['4h', '1h', '15min', '5min'] as Timeframe[]).map(tf => (
           <div key={tf} className="flex flex-col items-center">
             <span className="text-[8px] text-neutral-600 mb-1 uppercase">{tf}</span>
@@ -409,14 +366,14 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         ))}
       </div>
 
-      <div className="flex flex-col items-center w-16">
+      <div className="flex flex-col items-center w-14 shrink-0">
         <span className={`text-base font-mono ${getScoreColor(analysis?.powerScore || 0)}`}>
             {isLoading ? '--' : `${analysis?.powerScore || 0}`}
         </span>
         <span className="text-[8px] text-neutral-700 uppercase tracking-wider">Score</span>
       </div>
 
-      <div className="w-48">
+      <div className="w-[190px] shrink-0">
         {tradeSetup && isHighSignal && (
             <div className="flex flex-col gap-1">
               <button
@@ -465,19 +422,19 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         )}
       </div>
 
-      <div className="flex flex-col items-center justify-center w-24 text-center">
+      <div className="flex flex-col items-center justify-center w-[78px] shrink-0 text-center">
         {marketOpen 
           ? <span className="text-[9px] uppercase text-emerald-500 tracking-widest">Abierto</span> 
           : <span className="text-[9px] uppercase text-neutral-700 tracking-widest">Cerrado</span>}
       </div>
 
-      <div className="flex items-center justify-center w-48 space-x-2">
+      <div className="flex items-center justify-center w-[320px] shrink-0">
         {isLoading && !activeTrade ? (
             <div className="px-4 py-1.5 rounded border border-neutral-800 text-[9px] text-neutral-600 w-[110px] text-center">
                 Escaneando...
             </div>
         ) : (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
                 <button
                     onClick={isHighSignal && !activeTrade ? () => handleTakeTrade(analysis.mainSignal === SignalType.SALE ? 'sell' : 'buy') : undefined}
                     disabled={!!activeTrade}
@@ -490,31 +447,25 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
                 </button>
 
                 {activeTrade && (
-                    <div className="flex flex-col items-center justify-center gap-1.5">
-                        <div className="flex items-center justify-center space-x-2">
-                            {tpStatus && (
-                                <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${tpStatus.color}`}>
-                                    {tpStatus.label}
-                                </div>
-                            )}
-                            <div className={`flex items-center gap-1 text-xs font-mono font-bold px-3 py-1 rounded-full border ${pl.color}`}>
-                                <span className="text-sm">{pl.prefix}</span>
-                                <span>{pl.value.toFixed(2)}%</span>
-                            </div>
-                            <button onClick={handleCloseTrade} title="Close Trade" className="p-1.5 rounded-full bg-neutral-700/50 text-neutral-400 hover:bg-rose-500/30 hover:text-rose-300 transition-colors">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
+                  <div className="flex flex-col items-center justify-center gap-1.5 min-w-[180px]">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className={`flex items-center text-xs font-mono px-2 py-0.5 rounded border ${pl.color}`}>
+                        <span>{pl.prefix}{pl.value.toFixed(2)}%</span>
+                      </div>
+                      <button onClick={handleCloseTrade} title="Cerrar trade" className="p-1 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                         </div>
                         
                         {tpProgress && (
-                            <div className="w-full flex items-center gap-2">
-                                <div className="flex-grow h-1.5 bg-neutral-800/50 rounded-full overflow-hidden border border-white/5">
+                      <div className="w-full flex items-center gap-2">
+                        <div className="flex-grow h-px bg-neutral-800 rounded-full overflow-hidden">
                                     <div 
-                                        className={`h-full ${tpProgress.barColor} transition-all duration-500 ease-out`}
+                            className={`h-full ${tpProgress.barColor} transition-all duration-500`}
                                         style={{ width: `${tpProgress.progress}%` }}
                                     />
                                 </div>
-                                <span className="text-[9px] font-bold text-neutral-500 tabular-nums min-w-[32px] text-right">
+                        <span className="text-[9px] text-neutral-600 font-mono tabular-nums min-w-[28px] text-right">
                                     {tpProgress.rawProgress >= 0 ? Math.round(tpProgress.progress) : 0}%
                                 </span>
                             </div>
@@ -525,7 +476,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         )}
       </div>
 
-      <div className="w-10 flex justify-center items-center">
+      <div className="w-10 flex justify-center items-center shrink-0">
         <button onClick={toggleBookmark} className={`p-1 rounded transition-colors ${isBookmarked ? 'text-neutral-300' : 'text-neutral-800 hover:text-neutral-600'}`}>
           <Bookmark className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} />
         </button>
