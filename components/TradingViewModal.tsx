@@ -1,14 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Instrument } from '../types';
+import { Instrument, SignalType, TradeSetup } from '../types';
 
 interface TradingViewModalProps {
   instrument: Instrument;
+  tradeSetup?: TradeSetup | null;
+  mainSignal?: SignalType;
   isVisible: boolean;
   onMinimize: () => void;
   onClose: () => void;
 }
 
-const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisible, onMinimize, onClose }) => {
+const formatSetupValue = (value: number): string => {
+  if (value >= 1000) return value.toFixed(2);
+  if (value >= 1) return value.toFixed(4);
+  return value.toFixed(6);
+};
+
+const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSetup, mainSignal, isVisible, onMinimize, onClose }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const initializedSymbolRef = useRef<string | null>(null);
@@ -147,13 +155,24 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, isVisib
         className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 border-rose-500/50 transition-all duration-300 ease-in-out ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'}`}
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
-        <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 shrink-0">
+        <div className="relative flex items-center justify-between px-4 py-2 border-b border-white/10 shrink-0">
           <div className="flex items-center space-x-3">
             <span className="text-lg font-bold tracking-tighter text-white">{instrument.symbol}</span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
               LIVE ADVANCED ENGINE
             </span>
           </div>
+
+          {tradeSetup && (
+            <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 text-cyan-300">
+              <div className="flex items-center gap-4 text-sm font-mono">
+                <span>E: {formatSetupValue(tradeSetup.entry)}</span>
+                <span>TP: {formatSetupValue(tradeSetup.tp)}</span>
+                <span>Δ: {formatSetupValue(Math.abs(tradeSetup.tp - tradeSetup.entry))}</span>
+                {mainSignal && <span>{mainSignal === SignalType.SALE ? 'SELL' : 'BUY'}</span>}
+              </div>
+            </div>
+          )}
           
           <div className="flex items-center space-x-2">
             <button 

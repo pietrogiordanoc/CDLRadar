@@ -303,11 +303,14 @@ const App: React.FC = () => {
       <div id="chart-modals-container">
         {Object.entries(charts).map(([symbol, status]) => {
           const instrument = ALL_INSTRUMENTS.find(i => i.symbol === symbol);
+          const analysis = instrument ? analysesRef.current[instrument.id] : null;
           if (!instrument) return null;
           return (
             <TradingViewModal
               key={symbol}
               instrument={instrument}
+              tradeSetup={analysis?.tradeSetup || null}
+              mainSignal={analysis?.mainSignal}
               isVisible={status === 'visible'}
               onMinimize={() => handleMinimizeChart(symbol)}
               onClose={() => handleCloseChart(symbol)}
