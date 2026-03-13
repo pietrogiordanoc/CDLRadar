@@ -10,12 +10,10 @@ import Radar from './components/Radar';
 import { audioService } from './utils/audioService';
 
 type SortConfig = { key: 'symbol' | 'action' | 'signal' | 'price' | 'score'; direction: 'asc' | 'desc' } | null;
-type ActionFilter = 'all' | 'entrar' | 'salir' | 'esperar';
 
 const App: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [filter, setFilter] = useState<'all' | 'forex' | 'indices' | 'stocks' | 'commodities' | 'crypto'>('all');
-  const [actionFilter, setActionFilter] = useState<ActionFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [volume, setVolume] = useState(() => parseFloat(localStorage.getItem('alertVolume') || '0.5'));
@@ -92,16 +90,8 @@ const App: React.FC = () => {
     // Filtro por búsqueda
     if (searchQuery && !instrument.symbol.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     
-    // Filtro por acción
-    if (actionFilter !== 'all') {
-      const analysis = analysesRef.current[instrument.id];
-      if (actionFilter === 'entrar' && analysis?.action !== ActionType.ENTRAR_AHORA) return false;
-      if (actionFilter === 'salir' && analysis?.action !== ActionType.SALIR) return false;
-      if (actionFilter === 'esperar' && analysis?.action !== ActionType.ESPERAR && analysis?.action !== ActionType.NADA) return false;
-    }
-    
     return true;
-  }, [filter, searchQuery, actionFilter, forceUpdateTrigger]);
+  }, [filter, searchQuery, forceUpdateTrigger]);
 
   const sortedInstruments = useMemo(() => {
     const items = ALL_INSTRUMENTS;
@@ -268,36 +258,20 @@ const App: React.FC = () => {
 
       <main className="max-w-[1500px] mx-auto px-8 mt-10">
         <div className="grid grid-cols-1 gap-4">
-          <div className="flex items-center justify-between px-4 py-3 bg-white/[0.02] rounded-xl border border-white/5 mb-4 text-[10px] font-black uppercase tracking-widest text-neutral-600">
-            <div className="w-16 text-center">Status</div>
-            <div className="w-1/4 cursor-pointer hover:text-white transition-colors" onClick={() => requestSort('symbol')}>Instrument</div>
-            <div className="w-1/5 text-center">MTF Alignment</div>
-            <div className="w-16 text-center">
+          <div className="flex items-center justify-start gap-4 px-4 py-3 bg-white/[0.02] rounded-xl border border-white/5 mb-4 text-[10px] uppercase tracking-widest text-neutral-600">
+            <div className="w-16 text-center shrink-0">Status</div>
+            <div className="w-[190px] shrink-0 cursor-pointer hover:text-white transition-colors" onClick={() => requestSort('symbol')}>Instrument</div>
+            <div className="w-[44px] shrink-0 text-center">Chart</div>
+            <div className="w-[90px] shrink-0">Price</div>
+            <div className="w-[170px] shrink-0 text-center">MTF Alignment</div>
+            <div className="w-14 shrink-0 text-center">
               <span className="cursor-pointer hover:text-white transition-colors" onClick={() => requestSort('score')}>Score</span>
             </div>
-            <div className="w-40 text-center">Trade Setup</div>
-            <div className="w-24 text-center">Session</div>
-            <div className="w-48 text-center">
-               <div className="flex items-center justify-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5 scale-90">
-                <button 
-                  onClick={() => setActionFilter('all')}
-                  className={`px-2 py-0.5 rounded text-[7px] font-bold uppercase tracking-widest transition-all ${actionFilter === 'all' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}
-                >All</button>
-                <button 
-                  onClick={() => setActionFilter('entrar')}
-                  className={`px-2 py-0.5 rounded text-[7px] font-bold uppercase tracking-widest transition-all ${actionFilter === 'entrar' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-neutral-500'}`}
-                >Entrar</button>
-                <button 
-                  onClick={() => setActionFilter('salir')}
-                  className={`px-2 py-0.5 rounded text-[7px] font-bold uppercase tracking-widest transition-all ${actionFilter === 'salir' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'text-neutral-500'}`}
-                >Salir</button>
-                <button 
-                  onClick={() => setActionFilter('esperar')}
-                  className={`px-2 py-0.5 rounded text-[7px] font-bold uppercase tracking-widest transition-all ${actionFilter === 'esperar' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-neutral-500'}`}
-                >Standby</button>
-              </div>
-            </div>
-            <div className="w-10"></div>
+            <div className="w-[190px] shrink-0 text-center">Trade Setup</div>
+            <div className="w-[78px] shrink-0 text-center ml-auto">Session</div>
+            <div className="w-[120px] shrink-0 text-center">Action</div>
+            <div className="w-[190px] shrink-0 text-center">P&amp;L / Progress</div>
+            <div className="w-10 shrink-0"></div>
           </div>
           
           {sortedInstruments.map(instrument => {
