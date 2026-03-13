@@ -232,12 +232,13 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   };
   
   const calculatePL = () => {
-    if (!activeTrade || !currentPrice) return { value: 0, color: 'text-neutral-400', symbol: '' };
+    if (!activeTrade || !currentPrice) return { value: 0, color: 'text-neutral-400', prefix: '' };
     const pl = ((currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice) * 100 * (activeTrade.direction === 'buy' ? 1 : -1);
+    const absValue = Math.abs(pl);
     return {
-        value: pl,
+        value: absValue,
         color: pl >= 0 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-        symbol: pl >= 0 ? '▲' : '▼'
+        prefix: pl >= 0 ? '+' : '-'
     };
   };
 
@@ -366,8 +367,8 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
                 {activeTrade && (
                     <div className="flex items-center justify-center space-x-2">
-                        <div className={`flex items-center gap-2 text-xs font-mono font-bold px-3 py-1 rounded-full border ${pl.color}`}>
-                            <span>{pl.symbol}</span>
+                        <div className={`flex items-center gap-1 text-xs font-mono font-bold px-3 py-1 rounded-full border ${pl.color}`}>
+                            <span className="text-sm">{pl.prefix}</span>
                             <span>{pl.value.toFixed(2)}%</span>
                         </div>
                         <button onClick={handleCloseTrade} title="Close Trade" className="p-1.5 rounded-full bg-neutral-700/50 text-neutral-400 hover:bg-rose-500/30 hover:text-rose-300 transition-colors">

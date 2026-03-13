@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [isTendencialModalVisible, setIsTendencialModalVisible] = useState(false);
   
   const analysesRef = useRef<Record<string, MultiTimeframeAnalysis>>({});
-  const [, forceUpdate] = useState(0);
+  const [forceUpdateTrigger, forceUpdate] = useState(0);
 
   useEffect(() => {
     localStorage.setItem('alertVolume', volume.toString());
@@ -154,7 +154,7 @@ const App: React.FC = () => {
       
       return (analysisB?.powerScore || 0) - (analysisA?.powerScore || 0);
     });
-  }, [filter, actionFilter, searchQuery, sortConfig, refreshTrigger]);
+  }, [filter, actionFilter, searchQuery, sortConfig, refreshTrigger, forceUpdateTrigger]);
 
   return (
     <div className="min-h-screen pb-24 bg-[#050505] text-white selection:bg-emerald-500/30">
