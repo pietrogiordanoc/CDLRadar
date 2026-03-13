@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { ALL_INSTRUMENTS, REFRESH_INTERVAL_MS } from './constants.tsx';
 import { STRATEGIES } from './utils/tradingLogic';
 import { MultiTimeframeAnalysis, ActionType } from './types';
-import InstrumentRow from './components/InstrumentRow';
+import InstrumentRow, { GlobalAnalysisCache } from './components/InstrumentRow';
 import TimerDonut from './components/TimerDonut';
 import TradingViewModal from './components/TradingViewModal';
 import TendencialModal from './components/TendencialModal';
@@ -105,6 +105,12 @@ const App: React.FC = () => {
     return [...items].sort((a, b) => {
       const analysisA = currentAnalyses[a.id];
       const analysisB = currentAnalyses[b.id];
+      
+      // Obtener info de señales "NOW" del cache global
+      const cacheA = GlobalAnalysisCache[a.id];
+      const cacheB = GlobalAnalysisCache[b.id];
+      const isNewSignalA = cacheA?.newSignalTriggerId === refreshTrigger;
+      const isNewSignalB = cacheB?.newSignalTriggerId === refreshTrigger;
 
       if (sortConfig) {
         const { key, direction } = sortConfig;
@@ -131,7 +137,16 @@ const App: React.FC = () => {
         if (valA > valB) return direction === 'asc' ? 1 : -1;
       }
 
-      // Default sort by score and entries
+      // 🎯 PRIORIDAD 1: Señales "NOW" (nuevas) van SIEMPRE arriba
+      if (isNewSignalA && !isNewSignalB) return -1;
+      if (!isNewSignalA && isNewSignalB) return 1;
+      
+      // 🎯 PRIORIDAD 2: Si ambas son "NOW", ordenar por score descendente
+      if (isNewSignalA && isNewSignalB) {
+        return (analysisB?.powerScore || 0) - (analysisA?.powerScore || 0);
+      }
+
+      // Default sort by score and entries (para señales no-NOW)
       const isEntryA = analysisA?.action === ActionType.ENTRAR_AHORA;
       const isEntryB = analysisB?.action === ActionType.ENTRAR_AHORA;
       if (isEntryA && !isEntryB) return -1;

@@ -3,7 +3,7 @@ import { Instrument, MultiTimeframeAnalysis, SignalType, ActionType, Timeframe, 
 import { fetchTimeSeries, PriceStore, resampleCandles, isMarketOpen } from '../services/twelveDataService';
 import { audioService } from '../utils/audioService';
 
-const GlobalAnalysisCache: Record<string, { analysis: MultiTimeframeAnalysis, trigger: number, newSignalTriggerId?: number | null, lastAction?: ActionType | null }> = {};
+export const GlobalAnalysisCache: Record<string, { analysis: MultiTimeframeAnalysis, trigger: number, newSignalTriggerId?: number | null, lastAction?: ActionType | null }> = {};
 
 interface InstrumentRowProps {
   instrument: Instrument;
