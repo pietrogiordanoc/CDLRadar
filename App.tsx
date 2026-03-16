@@ -93,6 +93,18 @@ const App: React.FC = () => {
     const stopDistance = Math.abs(tp - entry) * 0.5; // SL a mitad de distancia al TP
     const positionSize = riskAmount / stopDistance;
 
+    console.log('Demo Trade Opened:', {
+      symbol,
+      direction,
+      entry,
+      tp,
+      currentBalance: demoAccount.currentBalance,
+      riskPercentage: demoAccount.riskPercentage,
+      riskAmount,
+      stopDistance,
+      positionSize
+    });
+
     const trade: DemoTrade = {
       id: `${symbol}-${Date.now()}`,
       symbol,
@@ -122,6 +134,18 @@ const App: React.FC = () => {
         ? (currentPrice - trade.entry)
         : (trade.entry - currentPrice);
       const profit = priceChange * trade.positionSize;
+
+      console.log('Demo Trade Closed:', {
+        symbol: trade.symbol,
+        direction: trade.direction,
+        entry: trade.entry,
+        exit: currentPrice,
+        priceChange,
+        positionSize: trade.positionSize,
+        profit,
+        balanceBefore: prev.currentBalance,
+        balanceAfter: prev.currentBalance + profit
+      });
 
       const updatedTrades = prev.trades.map(t => 
         t.id === tradeId 
@@ -391,7 +415,7 @@ const App: React.FC = () => {
                   <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-lg font-normal text-white">
-                      ${formatNumber(demoAccount.currentBalance, 0)}
+                      ${formatNumber(demoAccount.currentBalance, 2)}
                     </span>
                     <span className={`text-xs font-bold ${
                       demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
