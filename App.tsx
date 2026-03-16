@@ -138,11 +138,14 @@ const App: React.FC = () => {
   }, []);
 
   const resetDemoAccount = () => {
-    setDemoAccount(prev => ({
-      ...prev,
-      currentBalance: prev.initialBalance,
+    setDemoAccount({
+      enabled: false,
+      initialBalance: 10000,
+      currentBalance: 10000,
+      riskPercentage: 2,
       trades: []
-    }));
+    });
+    setDemoBalanceInput('10000');
   };
 
   // Calcular estadísticas de sesión
