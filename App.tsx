@@ -11,6 +11,28 @@ import { audioService } from './utils/audioService';
 
 type SortConfig = { key: 'symbol' | 'action' | 'signal' | 'price' | 'score'; direction: 'asc' | 'desc' } | null;
 
+interface DemoTrade {
+  id: string;
+  symbol: string;
+  direction: 'buy' | 'sell';
+  entry: number;
+  tp: number;
+  positionSize: number;
+  riskAmount: number;
+  openTime: number;
+  closeTime?: number;
+  profit?: number;
+  closed: boolean;
+}
+
+interface DemoAccount {
+  enabled: boolean;
+  initialBalance: number;
+  currentBalance: number;
+  riskPercentage: number;
+  trades: DemoTrade[];
+}
+
 const App: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [filter, setFilter] = useState<'all' | 'forex' | 'indices' | 'stocks' | 'commodities' | 'crypto'>('all');
@@ -21,9 +43,119 @@ const App: React.FC = () => {
   const [isRadarVisible, setIsRadarVisible] = useState(false);
   const [isTendencialModalVisible, setIsTendencialModalVisible] = useState(false);
   const [showActiveTradesOnly, setShowActiveTradesOnly] = useState(false);
+  const [showDemoConfig, setShowDemoConfig] = useState(false);
+  
+  const [demoAccount, setDemoAccount] = useState<DemoAccount>(() => {
+    const saved = localStorage.getItem('demoAccount');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      enabled: false,
+      initialBalance: 10000,
+      currentBalance: 10000,
+      riskPercentage: 2,
+      trades: []
+    };
+  });
   
   const analysesRef = useRef<Record<string, MultiTimeframeAnalysis>>({});
   const [forceUpdateTrigger, forceUpdate] = useState(0);
+
+  // Guardar demoAccount en localStorage
+  useEffect(() => {
+    localStorage.setItem('demoAccount', JSON.stringify(demoAccount));
+  }, [demoAccount]);
+
+  const handleDemoAccountConfig = (balance: number, risk: number) => {
+    setDemoAccount({
+      enabled: true,
+      initialBalance: balance,
+      currentBalance: balance,
+      riskPercentage: risk,
+      trades: []
+    });
+    setShowDemoConfig(false);
+  };
+
+  const handleDemoTrade = useCallback((symbol: string, direction: 'buy' | 'sell', entry: number, tp: number) => {
+    if (!demoAccount.enabled) return null;
+
+    const riskAmount = demoAccount.currentBalance * (demoAccount.riskPercentage / 100);
+    const stopDistance = Math.abs(tp - entry) * 0.5; // SL a mitad de distancia al TP
+    const positionSize = riskAmount / stopDistance;
+
+    const trade: DemoTrade = {
+      id: `${symbol}-${Date.now()}`,
+      symbol,
+      direction,
+      entry,
+      tp,
+      positionSize,
+      riskAmount,
+      openTime: Date.now(),
+      closed: false
+    };
+
+    setDemoAccount(prev => ({
+      ...prev,
+      trades: [...prev.trades, trade]
+    }));
+
+    return trade;
+  }, [demoAccount]);
+
+  const handleCloseDemoTrade = useCallback((tradeId: string, currentPrice: number) => {
+    setDemoAccount(prev => {
+      const trade = prev.trades.find(t => t.id === tradeId);
+      if (!trade || trade.closed) return prev;
+
+      const priceChange = trade.direction === 'buy' 
+        ? (currentPrice - trade.entry)
+        : (trade.entry - currentPrice);
+      const profit = priceChange * trade.positionSize;
+
+      const updatedTrades = prev.trades.map(t => 
+        t.id === tradeId 
+          ? { ...t, closed: true, closeTime: Date.now(), profit }
+          : t
+      );
+
+      return {
+        ...prev,
+        currentBalance: prev.currentBalance + profit,
+        trades: updatedTrades
+      };
+    });
+  }, []);
+
+  const resetDemoAccount = () => {
+    setDemoAccount(prev => ({
+      ...prev,
+      currentBalance: prev.initialBalance,
+      trades: []
+    }));
+  };
+
+  // Calcular estadísticas de sesión
+  const demoStats = useMemo(() => {
+    const sessionTrades = demoAccount.trades.filter(t => t.closed);
+    const totalPL = demoAccount.currentBalance - demoAccount.initialBalance;
+    const plPercentage = (totalPL / demoAccount.initialBalance) * 100;
+    const wins = sessionTrades.filter(t => (t.profit || 0) > 0).length;
+    const losses = sessionTrades.filter(t => (t.profit || 0) < 0).length;
+    const winRate = sessionTrades.length > 0 ? (wins / sessionTrades.length) * 100 : 0;
+    
+    return {
+      totalPL,
+      plPercentage,
+      totalTrades: sessionTrades.length,
+      wins,
+      losses,
+      winRate,
+      activeTrades: demoAccount.trades.filter(t => !t.closed).length
+    };
+  }, [demoAccount]);
 
   useEffect(() => {
     localStorage.setItem('alertVolume', volume.toString());
@@ -169,8 +301,40 @@ const App: React.FC = () => {
     <div className="min-h-screen pb-24 bg-[#050505] text-white selection:bg-emerald-500/30">
       <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-8 py-5">
         <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">
-            <div 
+          <div className="flex items-center space-x-4">            {demoAccount.enabled && (
+              <div className="flex flex-col items-end mr-6 border-r border-white/10 pr-6">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Balance Demo</span>
+                  <button 
+                    onClick={resetDemoAccount}
+                    className="text-[8px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                    title="Reset cuenta demo"
+                  >
+                    Reset
+                  </button>
+                </div>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black font-mono text-white">
+                    ${demoAccount.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className={`text-sm font-bold ${
+                    demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>
+                    {demoStats.totalPL >= 0 ? '+' : ''}{demoStats.plPercentage.toFixed(2)}%
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-[9px] text-neutral-500 mt-1">
+                  <span>{demoStats.totalTrades} trades</span>
+                  {demoStats.totalTrades > 0 && (
+                    <>
+                      <span className="text-emerald-400">{demoStats.wins}W</span>
+                      <span className="text-rose-400">{demoStats.losses}L</span>
+                      <span>WR: {demoStats.winRate.toFixed(0)}%</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}            <div 
               className="relative w-14 h-14 cursor-pointer group"
               onClick={() => setIsRadarVisible(true)}
             >
@@ -194,6 +358,14 @@ const App: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Live Market Scanner</span>
+                {!demoAccount.enabled && (
+                  <button
+                    onClick={() => setShowDemoConfig(true)}
+                    className="ml-3 px-2 py-1 text-[9px] font-black uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded hover:bg-cyan-500/20 transition-colors"
+                  >
+                    Activar Demo
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -317,6 +489,9 @@ const App: React.FC = () => {
                   isTestMode={false}
                   onOpenChart={handleOpenChart}
                   chartStatus={charts[instrument.symbol]}
+                  demoAccount={demoAccount}
+                  onDemoTrade={handleDemoTrade}
+                  onCloseDemoTrade={handleCloseDemoTrade}
                 />
               </div>
             );
@@ -360,6 +535,60 @@ const App: React.FC = () => {
           isVisible={isTendencialModalVisible}
           onClose={() => setIsTendencialModalVisible(false)}
         />
+      )}
+
+      {showDemoConfig && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-black text-white mb-2">Configurar Cuenta Demo</h2>
+            <p className="text-sm text-neutral-400 mb-6">Simula trading sin riesgo y valida las señales del sistema.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-2">Balance Inicial (USD)</label>
+                <input
+                  type="number"
+                  defaultValue={10000}
+                  id="demo-balance"
+                  className="w-full bg-neutral-900 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-lg focus:outline-none focus:border-emerald-500/50"
+                />
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-2">Riesgo por Trade (%)</label>
+                <input
+                  type="number"
+                  defaultValue={2}
+                  step="0.1"
+                  min="0.1"
+                  max="10"
+                  id="demo-risk"
+                  className="w-full bg-neutral-900 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-lg focus:outline-none focus:border-emerald-500/50"
+                />
+                <p className="text-xs text-neutral-600 mt-1">Recomendado: 1-2% para gestión conservadora</p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-8">
+              <button
+                onClick={() => setShowDemoConfig(false)}
+                className="flex-1 px-4 py-3 rounded-lg bg-neutral-800 text-white hover:bg-neutral-700 transition-colors font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const balance = parseFloat((document.getElementById('demo-balance') as HTMLInputElement).value);
+                  const risk = parseFloat((document.getElementById('demo-risk') as HTMLInputElement).value);
+                  handleDemoAccountConfig(balance, risk);
+                }}
+                className="flex-1 px-4 py-3 rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition-colors font-bold"
+              >
+                Activar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
