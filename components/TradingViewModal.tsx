@@ -113,10 +113,10 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
     script.innerHTML = JSON.stringify({
       "autosize": true,
       "symbol": tvSymbol,
-      "interval": "15",
+      "interval": "5",              // 🎯 Timeframe operativo principal (5 min)
       "timezone": "Etc/UTC",
       "theme": "dark",
-      "style": "1",
+      "style": "1",                 // 1=Candles, 0=Bars, 9=Heikin Ashi
       "locale": "en",
       "enable_publishing": false,
       "hide_side_toolbar": false,
@@ -125,16 +125,33 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
       "withdateranges": true,
       "details": true,
       "calendar": false,
+      "hotlist": true,              // Mostrar hotlist
+      "studies": [                  // 📊 Indicadores por defecto
+        "MASimple@tv-basicstudies",  // SMA
+        "Volume@tv-basicstudies"     // Volumen
+      ],
       "overrides": {
-        // Set default cursor to Arrow. 0: Cross, 1: Dot, 2: Arrow
+        // Cursor por defecto: Arrow
         "paneProperties.cursor": 2,
+        // Colores de velas
+        "mainSeriesProperties.candleStyle.upColor": "#10b981",
+        "mainSeriesProperties.candleStyle.downColor": "#ef4444",
+        "mainSeriesProperties.candleStyle.borderUpColor": "#10b981",
+        "mainSeriesProperties.candleStyle.borderDownColor": "#ef4444",
+        "mainSeriesProperties.candleStyle.wickUpColor": "#10b981",
+        "mainSeriesProperties.candleStyle.wickDownColor": "#ef4444"
+      },
+      "studies_overrides": {
+        // Configurar SMA con los períodos del sistema
+        "volume.volume.color.0": "#ef4444",
+        "volume.volume.color.1": "#10b981"
       },
       "support_host": "https://www.tradingview.com"
     });
 
     containerRef.current.appendChild(script);
     
-  }, [instrument]);
+  }, [instrument.symbol]); // 🔥 FIX: Solo re-ejecutar cuando el SÍMBOLO cambie, no la referencia del objeto
 
   return (
     <div 
