@@ -63,6 +63,13 @@ const App: React.FC = () => {
   const analysesRef = useRef<Record<string, MultiTimeframeAnalysis>>({});
   const [forceUpdateTrigger, forceUpdate] = useState(0);
 
+  // Formatear números con punto como separador de miles (formato español)
+  const formatNumber = (num: number, decimals: number = 0): string => {
+    const parts = num.toFixed(decimals).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return decimals > 0 ? parts.join(',') : parts[0];
+  };
+
   // Guardar demoAccount en localStorage
   useEffect(() => {
     localStorage.setItem('demoAccount', JSON.stringify(demoAccount));
@@ -381,7 +388,7 @@ const App: React.FC = () => {
                   <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-lg font-black font-mono text-white">
-                      ${(demoAccount.currentBalance / 1000).toFixed(1)}k
+                      ${formatNumber(demoAccount.currentBalance, 0)}
                     </span>
                     <span className={`text-xs font-bold ${
                       demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
