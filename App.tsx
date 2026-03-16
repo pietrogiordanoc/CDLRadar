@@ -43,7 +43,8 @@ const App: React.FC = () => {
   const [isRadarVisible, setIsRadarVisible] = useState(false);
   const [isTendencialModalVisible, setIsTendencialModalVisible] = useState(false);
   const [showActiveTradesOnly, setShowActiveTradesOnly] = useState(false);
-  const [showDemoConfig, setShowDemoConfig] = useState(false);
+  const [refreshJustCompleted, setRefreshJustCompleted] = useState(false);
+  const [demoBalanceInput, setDemoBalanceInput] = useState('10000');
   
   const [demoAccount, setDemoAccount] = useState<DemoAccount>(() => {
     const saved = localStorage.getItem('demoAccount');
@@ -67,15 +68,15 @@ const App: React.FC = () => {
     localStorage.setItem('demoAccount', JSON.stringify(demoAccount));
   }, [demoAccount]);
 
-  const handleDemoAccountConfig = (balance: number, risk: number) => {
+  const handleActivateDemo = () => {
+    const balance = parseFloat(demoBalanceInput) || 10000;
     setDemoAccount({
       enabled: true,
       initialBalance: balance,
       currentBalance: balance,
-      riskPercentage: risk,
+      riskPercentage: 2,
       trades: []
     });
-    setShowDemoConfig(false);
   };
 
   const handleDemoTrade = useCallback((symbol: string, direction: 'buy' | 'sell', entry: number, tp: number) => {
@@ -168,6 +169,8 @@ const App: React.FC = () => {
 
   const handleRefreshComplete = useCallback(() => {
     setRefreshTrigger(t => t + 1);
+    setRefreshJustCompleted(true);
+    setTimeout(() => setRefreshJustCompleted(false), 3000); // Parpadeo dura 3s
   }, []);
 
   const handleAnalysisUpdate = useCallback((id: string, data: MultiTimeframeAnalysis | null) => {
@@ -301,40 +304,8 @@ const App: React.FC = () => {
     <div className="min-h-screen pb-24 bg-[#050505] text-white selection:bg-emerald-500/30">
       <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-8 py-5">
         <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">            {demoAccount.enabled && (
-              <div className="flex flex-col items-end mr-6 border-r border-white/10 pr-6">
-                <div className="flex items-center space-x-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Balance Demo</span>
-                  <button 
-                    onClick={resetDemoAccount}
-                    className="text-[8px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
-                    title="Reset cuenta demo"
-                  >
-                    Reset
-                  </button>
-                </div>
-                <div className="flex items-baseline space-x-2">
-                  <span className="text-2xl font-black font-mono text-white">
-                    ${demoAccount.currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  <span className={`text-sm font-bold ${
-                    demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                  }`}>
-                    {demoStats.totalPL >= 0 ? '+' : ''}{demoStats.plPercentage.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-[9px] text-neutral-500 mt-1">
-                  <span>{demoStats.totalTrades} trades</span>
-                  {demoStats.totalTrades > 0 && (
-                    <>
-                      <span className="text-emerald-400">{demoStats.wins}W</span>
-                      <span className="text-rose-400">{demoStats.losses}L</span>
-                      <span>WR: {demoStats.winRate.toFixed(0)}%</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}            <div 
+          <div className="flex items-center space-x-4">
+            <div 
               className="relative w-14 h-14 cursor-pointer group"
               onClick={() => setIsRadarVisible(true)}
             >
@@ -358,14 +329,6 @@ const App: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Live Market Scanner</span>
-                {!demoAccount.enabled && (
-                  <button
-                    onClick={() => setShowDemoConfig(true)}
-                    className="ml-3 px-2 py-1 text-[9px] font-black uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded hover:bg-cyan-500/20 transition-colors"
-                  >
-                    Activar Demo
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -394,6 +357,59 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-6">
+            {/* Paper Money Demo */}
+            {!demoAccount.enabled ? (
+              <div className="flex items-center gap-2 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-xl px-3 py-2">
+                <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">Paper Money</span>
+                <input
+                  type="number"
+                  value={demoBalanceInput}
+                  onChange={(e) => setDemoBalanceInput(e.target.value)}
+                  placeholder="10000"
+                  className="w-20 bg-black/30 border border-white/10 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-cyan-500/50"
+                />
+                <button
+                  onClick={handleActivateDemo}
+                  className="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-400 text-[9px] font-black uppercase tracking-widest border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
+                >
+                  Start
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-xl px-3 py-2">
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-black font-mono text-white">
+                      ${(demoAccount.currentBalance / 1000).toFixed(1)}k
+                    </span>
+                    <span className={`text-xs font-bold ${
+                      demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    }`}>
+                      {demoStats.totalPL >= 0 ? '+' : ''}{demoStats.plPercentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+                {demoStats.totalTrades > 0 && (
+                  <div className="flex flex-col border-l border-white/10 pl-3">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Stats</span>
+                    <div className="flex items-center gap-2 text-[9px]">
+                      <span className="text-emerald-400">{demoStats.wins}W</span>
+                      <span className="text-rose-400">{demoStats.losses}L</span>
+                      <span className="text-neutral-400">{demoStats.winRate.toFixed(0)}%</span>
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={resetDemoAccount}
+                  className="text-[8px] px-2 py-1 rounded bg-neutral-800/50 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors font-bold uppercase tracking-wider"
+                  title="Reset paper account"
+                >
+                  Reset
+                </button>
+              </div>
+            )}
+            
             <div className="flex items-center space-x-4 bg-white/5 p-2 px-3 rounded-xl border border-white/10">
               <div className="flex items-center gap-2">
                 <button 
@@ -492,6 +508,7 @@ const App: React.FC = () => {
                   demoAccount={demoAccount}
                   onDemoTrade={handleDemoTrade}
                   onCloseDemoTrade={handleCloseDemoTrade}
+                  refreshJustCompleted={refreshJustCompleted}
                 />
               </div>
             );
@@ -535,60 +552,6 @@ const App: React.FC = () => {
           isVisible={isTendencialModalVisible}
           onClose={() => setIsTendencialModalVisible(false)}
         />
-      )}
-
-      {showDemoConfig && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-black text-white mb-2">Configurar Cuenta Demo</h2>
-            <p className="text-sm text-neutral-400 mb-6">Simula trading sin riesgo y valida las señales del sistema.</p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-2">Balance Inicial (USD)</label>
-                <input
-                  type="number"
-                  defaultValue={10000}
-                  id="demo-balance"
-                  className="w-full bg-neutral-900 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-lg focus:outline-none focus:border-emerald-500/50"
-                />
-              </div>
-              
-              <div>
-                <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-2">Riesgo por Trade (%)</label>
-                <input
-                  type="number"
-                  defaultValue={2}
-                  step="0.1"
-                  min="0.1"
-                  max="10"
-                  id="demo-risk"
-                  className="w-full bg-neutral-900 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-lg focus:outline-none focus:border-emerald-500/50"
-                />
-                <p className="text-xs text-neutral-600 mt-1">Recomendado: 1-2% para gestión conservadora</p>
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-8">
-              <button
-                onClick={() => setShowDemoConfig(false)}
-                className="flex-1 px-4 py-3 rounded-lg bg-neutral-800 text-white hover:bg-neutral-700 transition-colors font-bold"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  const balance = parseFloat((document.getElementById('demo-balance') as HTMLInputElement).value);
-                  const risk = parseFloat((document.getElementById('demo-risk') as HTMLInputElement).value);
-                  handleDemoAccountConfig(balance, risk);
-                }}
-                className="flex-1 px-4 py-3 rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition-colors font-bold"
-              >
-                Activar
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

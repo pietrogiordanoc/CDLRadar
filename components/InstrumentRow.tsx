@@ -25,6 +25,7 @@ interface InstrumentRowProps {
   demoAccount?: any;
   onDemoTrade?: (symbol: string, direction: 'buy' | 'sell', entry: number, tp: number) => any;
   onCloseDemoTrade?: (tradeId: string, currentPrice: number) => void;
+  refreshJustCompleted?: boolean;
 }
 
 type ActiveTrade = {
@@ -66,7 +67,7 @@ const calculateProfitDisplay = (tp: number, entry: number, instrument: Instrumen
 };
 
 const InstrumentRow: React.FC<InstrumentRowProps> = ({ 
-  instrument, isConnected, onToggleConnect, globalRefreshTrigger, strategy, onAnalysisUpdate, isTestMode = false, onOpenChart, chartStatus, demoAccount, onDemoTrade, onCloseDemoTrade
+  instrument, isConnected, onToggleConnect, globalRefreshTrigger, strategy, onAnalysisUpdate, isTestMode = false, onOpenChart, chartStatus, demoAccount, onDemoTrade, onCloseDemoTrade, refreshJustCompleted = false
 }) => {
   const [analysis, setAnalysis] = useState<MultiTimeframeAnalysis | null>(() => GlobalAnalysisCache[instrument.id]?.analysis || null);
   const [isLoading, setIsLoading] = useState(false);
@@ -380,7 +381,18 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   return (
     <div className={`flex items-center justify-start gap-4 p-3 px-4 rounded-xl border transition-colors duration-200
       ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
-      hover:bg-white/[0.04] hover:border-white/10`}>
+      hover:bg-white/[0.04] hover:border-white/10
+      ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}`}>
+      
+      <style jsx>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 0.8s ease-in-out 3;
+        }
+      `}</style>
       
       <div className="flex items-center justify-center w-16">
         <div className="h-6 w-10 rounded-full transition-all duration-200 flex items-center p-0.5 bg-neutral-900 border border-neutral-800">
