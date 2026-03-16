@@ -369,11 +369,11 @@ const App: React.FC = () => {
               <div className="flex items-center gap-2 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-xl px-3 py-2">
                 <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">Paper Money</span>
                 <input
-                  type="number"
+                  type="text"
                   value={demoBalanceInput}
                   onChange={(e) => setDemoBalanceInput(e.target.value)}
                   placeholder="10000"
-                  className="w-20 bg-black/30 border border-white/10 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-cyan-500/50"
+                  className="w-24 bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
                 />
                 <button
                   onClick={handleActivateDemo}
@@ -387,7 +387,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col">
                   <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-black font-mono text-white">
+                    <span className="text-lg font-normal text-white">
                       ${formatNumber(demoAccount.currentBalance, 0)}
                     </span>
                     <span className={`text-xs font-bold ${
