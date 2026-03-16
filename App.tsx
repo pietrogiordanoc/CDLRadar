@@ -8,6 +8,7 @@ import TradingViewModal from './components/TradingViewModal';
 import TendencialModal from './components/TendencialModal';
 import Radar from './components/Radar';
 import { audioService } from './utils/audioService';
+import { PriceStore } from './services/twelveDataService';
 
 type SortConfig = { key: 'symbol' | 'action' | 'signal' | 'price' | 'score'; direction: 'asc' | 'desc' } | null;
 
@@ -175,8 +176,26 @@ const App: React.FC = () => {
   // Calcular estadísticas de sesión
   const demoStats = useMemo(() => {
     const sessionTrades = demoAccount.trades.filter(t => t.closed);
-    const totalPL = demoAccount.currentBalance - demoAccount.initialBalance;
+    const activeTrades = demoAccount.trades.filter(t => !t.closed);
+    
+    // Calcular P&L flotante de trades activos
+    let floatingPL = 0;
+    activeTrades.forEach(trade => {
+      const currentPrice = PriceStore[trade.symbol];
+      if (currentPrice && currentPrice > 0) {
+        const priceChange = trade.direction === 'buy'
+          ? (currentPrice - trade.entry)
+          : (trade.entry - currentPrice);
+        floatingPL += priceChange * trade.positionSize;
+      }
+    });
+    
+    // Balance realizado + P&L flotante
+    const realizedPL = demoAccount.currentBalance - demoAccount.initialBalance;
+    const totalPL = realizedPL + floatingPL;
+    const currentEquity = demoAccount.currentBalance + floatingPL;
     const plPercentage = (totalPL / demoAccount.initialBalance) * 100;
+    
     const wins = sessionTrades.filter(t => (t.profit || 0) > 0).length;
     const losses = sessionTrades.filter(t => (t.profit || 0) < 0).length;
     const winRate = sessionTrades.length > 0 ? (wins / sessionTrades.length) * 100 : 0;
@@ -184,13 +203,27 @@ const App: React.FC = () => {
     return {
       totalPL,
       plPercentage,
+      currentEquity,
+      floatingPL,
+      realizedPL,
       totalTrades: sessionTrades.length,
       wins,
       losses,
       winRate,
-      activeTrades: demoAccount.trades.filter(t => !t.closed).length
+      activeTrades: activeTrades.length
     };
-  }, [demoAccount]);
+  }, [demoAccount, forceUpdateTrigger]);
+
+  // Forzar actualización cada 5s para reflejar P&L flotante en tiempo real
+  useEffect(() => {
+    if (!demoAccount.enabled || demoAccount.trades.filter(t => !t.closed).length === 0) return;
+    
+    const interval = setInterval(() => {
+      forceUpdate(t => t + 1);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [demoAccount.enabled, demoAccount.trades]);
 
   useEffect(() => {
     localStorage.setItem('alertVolume', volume.toString());
@@ -415,7 +448,7 @@ const App: React.FC = () => {
                   <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-lg font-normal text-white">
-                      ${formatNumber(demoAccount.currentBalance, 2)}
+                      ${formatNumber(demoStats.currentEquity, 2)}
                     </span>
                     <span className={`text-xs font-bold ${
                       demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
