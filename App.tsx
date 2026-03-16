@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [charts, setCharts] = useState<Record<string, 'visible' | 'minimized'>>({});
   const [isRadarVisible, setIsRadarVisible] = useState(false);
   const [isTendencialModalVisible, setIsTendencialModalVisible] = useState(false);
+  const [showActiveTradesOnly, setShowActiveTradesOnly] = useState(false);
   
   const analysesRef = useRef<Record<string, MultiTimeframeAnalysis>>({});
   const [forceUpdateTrigger, forceUpdate] = useState(0);
@@ -84,6 +85,13 @@ const App: React.FC = () => {
 
   // Función helper para determinar si un instrumento debe ser VISIBLE (no eliminado)
   const isInstrumentVisible = useCallback((instrument: typeof ALL_INSTRUMENTS[0]) => {
+    // Filtro de trades activos (tiene máxima prioridad)
+    if (showActiveTradesOnly) {
+      const cache = GlobalAnalysisCache[instrument.id];
+      // Solo mostrar si tiene activeTrade en el cache
+      return cache?.hasActiveTrade === true;
+    }
+    
     // Filtro por categoría
     if (filter !== 'all' && instrument.type !== filter) return false;
     
@@ -91,7 +99,7 @@ const App: React.FC = () => {
     if (searchQuery && !instrument.symbol.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     
     return true;
-  }, [filter, searchQuery, forceUpdateTrigger]);
+  }, [filter, searchQuery, forceUpdateTrigger, showActiveTradesOnly]);
 
   const sortedInstruments = useMemo(() => {
     const items = ALL_INSTRUMENTS;
@@ -101,11 +109,17 @@ const App: React.FC = () => {
       const analysisA = currentAnalyses[a.id];
       const analysisB = currentAnalyses[b.id];
       
-      // 🎯 PRIORIDAD MÁXIMA: Obtener info de señales "NOW" del cache global
+      // 🎯 PRIORIDAD MÁXIMA: Obtener info del cache global
       const cacheA = GlobalAnalysisCache[a.id];
       const cacheB = GlobalAnalysisCache[b.id];
+      const hasActiveTradeA = cacheA?.hasActiveTrade === true;
+      const hasActiveTradeB = cacheB?.hasActiveTrade === true;
       const isNewSignalA = cacheA?.newSignalTriggerId === refreshTrigger;
       const isNewSignalB = cacheB?.newSignalTriggerId === refreshTrigger;
+
+      // 🟢 PRIORIDAD 0: TRADES ACTIVOS van SIEMPRE PRIMERO
+      if (hasActiveTradeA && !hasActiveTradeB) return -1;
+      if (!hasActiveTradeA && hasActiveTradeB) return 1;
 
       // 🚨 PRIORIDAD 1: Señales "NOW" (nuevas) van SIEMPRE arriba, sin excepción
       if (isNewSignalA && !isNewSignalB) return -1;
@@ -270,7 +284,22 @@ const App: React.FC = () => {
             <div className="w-[190px] shrink-0 text-center">Trade Setup</div>
             <div className="w-[78px] shrink-0 text-center ml-auto">Session</div>
             <div className="w-[120px] shrink-0 text-center">Action</div>
-            <div className="w-[190px] shrink-0 text-center">P&amp;L / Progress</div>
+            <div 
+              className="w-[190px] shrink-0 text-center cursor-pointer hover:text-white transition-colors relative group"
+              onClick={() => {
+                setShowActiveTradesOnly(!showActiveTradesOnly);
+                forceUpdate(t => t + 1); // Forzar re-render inmediato
+              }}
+              title="Click para filtrar trades activos"
+            >
+              P&amp;L / Progress
+              {showActiveTradesOnly && (
+                <span className="ml-2 text-[8px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">ACTIVE</span>
+              )}
+              <svg className="w-3 h-3 inline-block ml-1 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+            </div>
             <div className="w-10 shrink-0"></div>
           </div>
           

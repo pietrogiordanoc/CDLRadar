@@ -4,7 +4,13 @@ import { Instrument, MultiTimeframeAnalysis, SignalType, ActionType, Timeframe, 
 import { fetchTimeSeries, PriceStore, resampleCandles, isMarketOpen } from '../services/twelveDataService';
 import { audioService } from '../utils/audioService';
 
-export const GlobalAnalysisCache: Record<string, { analysis: MultiTimeframeAnalysis, trigger: number, newSignalTriggerId?: number | null, lastAction?: ActionType | null }> = {};
+export const GlobalAnalysisCache: Record<string, { 
+  analysis: MultiTimeframeAnalysis, 
+  trigger: number, 
+  newSignalTriggerId?: number | null, 
+  lastAction?: ActionType | null,
+  hasActiveTrade?: boolean 
+}> = {};
 
 interface InstrumentRowProps {
   instrument: Instrument;
@@ -71,6 +77,13 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   const [copyStatus, setCopyStatus] = useState<boolean>(false);
   
   const lastRefreshTriggerRef = useRef<number>(GlobalAnalysisCache[instrument.id]?.trigger ?? -1);
+
+  // 🟢 Sincronizar activeTrade con GlobalAnalysisCache para ordenamiento
+  useEffect(() => {
+    if (GlobalAnalysisCache[instrument.id]) {
+      GlobalAnalysisCache[instrument.id].hasActiveTrade = activeTrade !== null;
+    }
+  }, [activeTrade, instrument.id]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -220,10 +233,21 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
       direction,
       tp: tradeSetup?.tp
     });
+    
+    // 🟢 Actualizar cache global para ordenamiento
+    if (GlobalAnalysisCache[instrument.id]) {
+      GlobalAnalysisCache[instrument.id].hasActiveTrade = true;
+    }
   };
 
   const handleCloseTrade = () => {
     setActiveTrade(null);
+    
+    // 🟢 Actualizar cache global
+    if (GlobalAnalysisCache[instrument.id]) {
+      GlobalAnalysisCache[instrument.id].hasActiveTrade = false;
+    }
+    
     performAnalysis();
   };
 
