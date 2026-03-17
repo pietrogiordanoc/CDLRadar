@@ -49,6 +49,7 @@ const App: React.FC = () => {
   const [demoBalanceInput, setDemoBalanceInput] = useState('10000');
   const [showDemoScreener, setShowDemoScreener] = useState(false);
   const [showDebugFrames, setShowDebugFrames] = useState(false);
+  const [demoTradesTab, setDemoTradesTab] = useState<'active' | 'closed'>('active');
   const [demoRiskInput, setDemoRiskInput] = useState(() => {
     const saved = localStorage.getItem('demoAccount');
     if (saved) {
@@ -819,133 +820,158 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* SECTION C: Active Trades */}
-          {demoAccount.trades.filter(t => !t.closed).length > 0 && (
-            <div className="px-6 py-2 border-b border-white/5 max-h-[35vh] overflow-y-auto">
-              <div className={`p-2 relative ${showDebugFrames ? 'border-2 border-cyan-500' : ''}`}>
-                {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-2 text-xs text-cyan-500">SECTION C: ACTIVE TRADES</span>}
-                <div className="space-y-4">
-                  {(() => {
-                    const activeByInstrument: Record<string, any[]> = {};
-                    
-                    demoAccount.trades.filter(t => !t.closed).forEach(trade => {
-                      if (!activeByInstrument[trade.symbol]) {
-                        activeByInstrument[trade.symbol] = [];
-                      }
-                      activeByInstrument[trade.symbol].push(trade);
-                    });
+          {/* Tabs */}
+          <div className="flex items-center gap-2 px-6 py-3 border-b border-white/5 flex-shrink-0">
+            <button
+              onClick={() => setDemoTradesTab('active')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                demoTradesTab === 'active'
+                  ? 'bg-cyan-500/20 text-cyan-400 border-2 border-cyan-500/40'
+                  : 'bg-white/5 text-neutral-500 border-2 border-transparent hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Active Trades ({demoAccount.trades.filter(t => !t.closed).length})
+            </button>
+            <button
+              onClick={() => setDemoTradesTab('closed')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                demoTradesTab === 'closed'
+                  ? 'bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/40'
+                  : 'bg-white/5 text-neutral-500 border-2 border-transparent hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Closed Trades ({demoAccount.trades.filter(t => t.closed).length})
+            </button>
+          </div>
 
-                    return Object.entries(activeByInstrument).map(([symbol, trades]) => {
-                      const instrumentType = trades[0]?.instrumentType || 'unknown';
-                      
-                      return (
-                        <div key={symbol} className="border border-cyan-500/30 rounded overflow-hidden bg-cyan-500/5">
-                          {/* Header: Instrumento */}
-                          <div className="grid grid-cols-3 gap-4 px-4 py-2 bg-cyan-500/10 border-b border-cyan-500/20 text-[14px]">
-                            <div>
-                              <div className="text-white font-bold">{symbol}</div>
-                              <div className="text-[10px] text-neutral-600">symbol</div>
-                            </div>
-                            <div>
-                              <div className="text-cyan-400 uppercase text-xs">{instrumentType}</div>
-                              <div className="text-[10px] text-neutral-600">type</div>
-                            </div>
-                            <div>
-                              <div className="text-cyan-400">{trades.length} active</div>
-                              <div className="text-[10px] text-neutral-600">trades</div>
-                            </div>
-                          </div>
-                          
-                          {/* Trades activos */}
-                          <div>
-                            {/* Headers de columnas */}
-                            <div className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px] gap-4 px-4 py-2 bg-white/[0.01] border-b border-white/5 text-[11px] text-neutral-600">
-                              <div>#</div>
-                              <div>type</div>
-                              <div>side</div>
-                              <div className="text-right">entry</div>
-                              <div className="text-right">tp</div>
-                              <div className="text-right">size</div>
-                              <div className="text-right">time</div>
-                              <div className="text-right">open</div>
-                              <div className="text-right">p&l</div>
-                              <div className="text-right">%</div>
-                            </div>
-                            
-                            {trades.map((trade, idx) => {
-                              const currentPrice = PriceStore[trade.symbol] || trade.entry;
-                              const currentProfit = trade.direction === 'buy' 
-                                ? (currentPrice - trade.entry) * trade.positionSize
-                                : (trade.entry - currentPrice) * trade.positionSize;
-                              const profitPercent = (currentProfit / trade.riskAmount) * 100;
-                              const duration = Date.now() - trade.openTime;
-                              const durationMins = Math.round(duration / 60000);
-                              const openDate = new Date(trade.openTime);
-
-                              return (
-                                <div key={trade.id} className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[14px]">
-                                  <div className="text-neutral-600">#{trades.length - idx}</div>
-                                  <div className="text-neutral-500 text-xs uppercase">{trade.instrumentType}</div>
-                                  <div className={trade.direction === 'buy' ? 'text-emerald-400' : 'text-rose-400'}>
-                                    {trade.direction}
-                                  </div>
-                                  <div className="text-right text-neutral-400">{trade.entry.toFixed(5)}</div>
-                                  <div className="text-right text-neutral-400">{trade.tp.toFixed(5)}</div>
-                                  <div className="text-right text-cyan-400">{formatNumber(trade.positionSize, 0)}</div>
-                                  <div className="text-right text-cyan-400">{durationMins}m</div>
-                                  <div className="text-right text-neutral-600">
-                                    {openDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} {openDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                                  </div>
-                                  <div className={`text-right font-bold ${currentProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                    {currentProfit >= 0 ? '+' : ''}${formatNumber(Math.abs(currentProfit), 2)}
-                                  </div>
-                                  <div className={`text-right ${currentProfit >= 0 ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
-                                    {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(0)}%
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bottom Section: Closed Trades */}
-          <div className={`flex-1 min-h-[200px] overflow-y-auto relative ${showDebugFrames ? 'border-2 border-yellow-500' : ''}`}>
-            {showDebugFrames && <span className="absolute top-0 left-8 bg-[#050505] px-2 text-xs text-yellow-500 z-50 -translate-y-1/2">SECTION D: CLOSED TRADES</span>}
-            <div className="px-6 py-4 pt-6">
-              {/* Historial de Trades - Tabla */}
-                  {demoAccount.trades.filter(t => t.closed).length === 0 ? (
+          {/* Trade List - Full Height con Scroll */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="px-6 py-4">
+              {demoTradesTab === 'active' ? (
+                /* ACTIVE TRADES */
+                <>
+                  {demoAccount.trades.filter(t => !t.closed).length === 0 ? (
                     <div className="py-12 text-center text-[14px] text-neutral-600 border border-dashed border-white/5 rounded">
-                      no trades yet
+                      no active trades
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {/* Trades agrupados por instrumento */}
-                      {(() => {
-                        const instrumentStats: Record<string, { trades: any[]; totalPL: number; wins: number; losses: number }> = {};
+                  <div className="space-y-4">
+                    {(() => {
+                      const activeByInstrument: Record<string, any[]> = {};
+                      
+                      demoAccount.trades.filter(t => !t.closed).forEach(trade => {
+                        if (!activeByInstrument[trade.symbol]) {
+                          activeByInstrument[trade.symbol] = [];
+                        }
+                        activeByInstrument[trade.symbol].push(trade);
+                      });
+
+                      return Object.entries(activeByInstrument).map(([symbol, trades]) => {
+                        const instrumentType = trades[0]?.instrumentType || 'unknown';
                         
-                        demoAccount.trades.filter(t => t.closed).forEach(trade => {
-                          if (!instrumentStats[trade.symbol]) {
-                            instrumentStats[trade.symbol] = { trades: [], totalPL: 0, wins: 0, losses: 0 };
-                          }
-                          instrumentStats[trade.symbol].trades.push(trade);
-                          instrumentStats[trade.symbol].totalPL += trade.profit || 0;
-                          if ((trade.profit || 0) > 0) instrumentStats[trade.symbol].wins++;
-                          else instrumentStats[trade.symbol].losses++;
-                        });
+                        return (
+                          <div key={symbol} className="border border-cyan-500/30 rounded overflow-hidden bg-cyan-500/5">
+                            {/* Header: Instrumento */}
+                            <div className="grid grid-cols-3 gap-4 px-4 py-2 bg-cyan-500/10 border-b border-cyan-500/20 text-[14px]">
+                              <div>
+                                <div className="text-white font-bold">{symbol}</div>
+                                <div className="text-[10px] text-neutral-600">symbol</div>
+                              </div>
+                              <div>
+                                <div className="text-cyan-400 uppercase text-xs">{instrumentType}</div>
+                                <div className="text-[10px] text-neutral-600">type</div>
+                              </div>
+                              <div>
+                                <div className="text-cyan-400">{trades.length} active</div>
+                                <div className="text-[10px] text-neutral-600">trades</div>
+                              </div>
+                            </div>
+                            
+                            {/* Trades activos */}
+                            <div>
+                              {/* Headers de columnas */}
+                              <div className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px] gap-4 px-4 py-2 bg-white/[0.01] border-b border-white/5 text-[11px] text-neutral-600">
+                                <div>#</div>
+                                <div>type</div>
+                                <div>side</div>
+                                <div className="text-right">entry</div>
+                                <div className="text-right">tp</div>
+                                <div className="text-right">size</div>
+                                <div className="text-right">time</div>
+                                <div className="text-right">open</div>
+                                <div className="text-right">p&l</div>
+                                <div className="text-right">%</div>
+                              </div>
+                              
+                              {trades.map((trade, idx) => {
+                                const currentPrice = PriceStore[trade.symbol] || trade.entry;
+                                const currentProfit = trade.direction === 'buy' 
+                                  ? (currentPrice - trade.entry) * trade.positionSize
+                                  : (trade.entry - currentPrice) * trade.positionSize;
+                                const profitPercent = (currentProfit / trade.riskAmount) * 100;
+                                const duration = Date.now() - trade.openTime;
+                                const durationMins = Math.round(duration / 60000);
+                                const openDate = new Date(trade.openTime);
 
-                        const sortedInstruments = Object.entries(instrumentStats).sort((a, b) => b[1].totalPL - a[1].totalPL);
+                                return (
+                                  <div key={trade.id} className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[14px]">
+                                    <div className="text-neutral-600">#{trades.length - idx}</div>
+                                    <div className="text-neutral-500 text-xs uppercase">{trade.instrumentType}</div>
+                                    <div className={trade.direction === 'buy' ? 'text-emerald-400' : 'text-rose-400'}>
+                                      {trade.direction}
+                                    </div>
+                                    <div className="text-right text-neutral-400">{trade.entry.toFixed(5)}</div>
+                                    <div className="text-right text-neutral-400">{trade.tp.toFixed(5)}</div>
+                                    <div className="text-right text-cyan-400">{formatNumber(trade.positionSize, 0)}</div>
+                                    <div className="text-right text-cyan-400">{durationMins}m</div>
+                                    <div className="text-right text-neutral-600">
+                                      {openDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} {openDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                    <div className={`text-right font-bold ${currentProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                      {currentProfit >= 0 ? '+' : ''}${formatNumber(Math.abs(currentProfit), 2)}
+                                    </div>
+                                    <div className={`text-right ${currentProfit >= 0 ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
+                                      {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(0)}%
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                  )}
+                </>
+              ) : (
+                /* CLOSED TRADES */
+                <>
+                  {demoAccount.trades.filter(t => t.closed).length === 0 ? (
+                    <div className="py-12 text-center text-[14px] text-neutral-600 border border-dashed border-white/5 rounded">
+                      no closed trades yet
+                    </div>
+                  ) : (
+                  <div className="space-y-4">
+                    {(() => {
+                      const instrumentStats: Record<string, { trades: any[]; totalPL: number; wins: number; losses: number }> = {};
+                      
+                      demoAccount.trades.filter(t => t.closed).forEach(trade => {
+                        if (!instrumentStats[trade.symbol]) {
+                          instrumentStats[trade.symbol] = { trades: [], totalPL: 0, wins: 0, losses: 0 };
+                        }
+                        instrumentStats[trade.symbol].trades.push(trade);
+                        instrumentStats[trade.symbol].totalPL += trade.profit || 0;
+                        if ((trade.profit || 0) > 0) instrumentStats[trade.symbol].wins++;
+                        else instrumentStats[trade.symbol].losses++;
+                      });
 
-                        return sortedInstruments.map(([symbol, stats]) => {
-                          const instrumentType = stats.trades[0]?.instrumentType || 'unknown';
-                          
-                          return (
+                      const sortedInstruments = Object.entries(instrumentStats).sort((a, b) => b[1].totalPL - a[1].totalPL);
+
+                      return sortedInstruments.map(([symbol, stats]) => {
+                        const instrumentType = stats.trades[0]?.instrumentType || 'unknown';
+                        
+                        return (
                           <div key={symbol} className="border border-white/5 rounded overflow-hidden">
                             {/* Header: Instrumento y Stats */}
                             <div className="grid grid-cols-6 gap-4 px-4 py-2 bg-white/[0.03] border-b border-white/5 text-[14px]">
@@ -1028,15 +1054,17 @@ const App: React.FC = () => {
                                 })}
                             </div>
                           </div>
-                          );
-                        });
-                      })()}
-                    </div>
+                        );
+                      });
+                    })()}
+                  </div>
                   )}
+                </>
+              )}
             </div>
           </div>
-          </div>
         </div>
+      </div>
       )}
     </div>
   );
