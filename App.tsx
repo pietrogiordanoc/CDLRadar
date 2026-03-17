@@ -655,211 +655,142 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Demo Screener Modal */}
+      {/* Demo Screener Fullscreen */}
       {showDemoScreener && demoAccount.enabled && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <div>
-                <h2 className="text-2xl font-black text-white">Paper Trading History</h2>
-                <p className="text-sm text-neutral-400 mt-1">Historial completo de operaciones simuladas</p>
+        <div className="fixed inset-0 z-[200] bg-[#050505]">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
+            <div className="flex items-center gap-8 text-[11px] text-neutral-400">
+              <div className="flex items-center gap-2">
+                <span>${formatNumber(demoAccount.initialBalance, 0)}</span>
+                <span className="text-neutral-700">→</span>
+                <span className="text-white">${formatNumber(demoStats.currentEquity, 2)}</span>
               </div>
-              <button
-                onClick={() => setShowDemoScreener(false)}
-                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-              >
-                <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <span className={demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                {demoStats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(demoStats.totalPL), 2)} ({demoStats.plPercentage.toFixed(1)}%)
+              </span>
+              <span className="text-cyan-400">{demoStats.winRate.toFixed(0)}% WR</span>
+              <span className="text-emerald-400">{demoStats.wins}W</span>
+              <span className="text-rose-400">{demoStats.losses}L</span>
+              <div className="flex items-center gap-2">
+                <span className="text-neutral-600">risk</span>
+                <input
+                  type="number"
+                  value={demoRiskInput}
+                  onChange={(e) => setDemoRiskInput(e.target.value)}
+                  onBlur={updateDemoRisk}
+                  step="0.1"
+                  min="0.1"
+                  max="10"
+                  className="w-12 bg-neutral-900 border border-white/5 rounded px-1.5 py-0.5 text-[11px] text-white focus:outline-none focus:border-cyan-500/30"
+                />
+                <span className="text-neutral-600">%</span>
+              </div>
             </div>
+            <button
+              onClick={() => setShowDemoScreener(false)}
+              className="text-[11px] text-neutral-500 hover:text-white transition-colors px-3 py-1 rounded hover:bg-white/5"
+            >
+              close
+            </button>
+          </div>
 
-            {/* Controls */}
-            <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Balance Inicial</span>
-                    <span className="text-lg font-bold text-white">${formatNumber(demoAccount.initialBalance, 2)}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Balance Actual</span>
-                    <span className="text-lg font-bold text-white">${formatNumber(demoStats.currentEquity, 2)}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">P&L Total</span>
-                    <span className={`text-lg font-bold ${
-                      demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}>
-                      {demoStats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(demoStats.totalPL), 2)} ({demoStats.plPercentage.toFixed(2)}%)
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Win Rate</span>
-                    <span className="text-lg font-bold text-cyan-400">{demoStats.winRate.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Trades</span>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-emerald-400 font-bold">{demoStats.wins}W</span>
-                      <span className="text-neutral-600">/</span>
-                      <span className="text-rose-400 font-bold">{demoStats.losses}L</span>
+          <div className="h-[calc(100vh-60px)] overflow-y-auto px-6 py-4">
+            {(() => {
+              const instrumentStats: Record<string, { trades: number; totalPL: number; wins: number; losses: number }> = {};
+              
+              demoAccount.trades.filter(t => t.closed).forEach(trade => {
+                if (!instrumentStats[trade.symbol]) {
+                  instrumentStats[trade.symbol] = { trades: 0, totalPL: 0, wins: 0, losses: 0 };
+                }
+                instrumentStats[trade.symbol].trades++;
+                instrumentStats[trade.symbol].totalPL += trade.profit || 0;
+                if ((trade.profit || 0) > 0) instrumentStats[trade.symbol].wins++;
+                else instrumentStats[trade.symbol].losses++;
+              });
+
+              const sortedInstruments = Object.entries(instrumentStats).sort((a, b) => b[1].totalPL - a[1].totalPL);
+
+              return (
+                <div className="space-y-6">
+                  {/* Stats por Instrumento - Tabla */}
+                  {sortedInstruments.length > 0 && (
+                    <div className="border border-white/5 rounded">
+                      <div className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-white/5 text-[10px] text-neutral-600">
+                        <div>symbol</div>
+                        <div className="text-right">p&l</div>
+                        <div className="text-right">trades</div>
+                        <div className="text-right">wins</div>
+                        <div className="text-right">losses</div>
+                      </div>
+                      {sortedInstruments.map(([symbol, stats]) => (
+                        <div key={symbol} className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[11px]">
+                          <div className="text-white">{symbol}</div>
+                          <div className={`text-right ${stats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {stats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(stats.totalPL), 0)}
+                          </div>
+                          <div className="text-right text-neutral-400">{stats.trades}</div>
+                          <div className="text-right text-emerald-400">{stats.wins}</div>
+                          <div className="text-right text-rose-400">{stats.losses}</div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Riesgo %</span>
-                    <input
-                      type="number"
-                      value={demoRiskInput}
-                      onChange={(e) => setDemoRiskInput(e.target.value)}
-                      onBlur={updateDemoRisk}
-                      step="0.1"
-                      min="0.1"
-                      max="10"
-                      className="w-16 bg-neutral-900 border border-white/10 rounded px-2 py-1 text-sm text-white font-mono focus:outline-none focus:border-cyan-500/50"
-                    />
-                    <span className="text-xs text-neutral-600">actual: {demoAccount.riskPercentage.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  )}
 
-            {/* Trades List */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              {(() => {
-                const instrumentStats: Record<string, { trades: number; totalPL: number; wins: number; losses: number }> = {};
-                
-                demoAccount.trades.filter(t => t.closed).forEach(trade => {
-                  if (!instrumentStats[trade.symbol]) {
-                    instrumentStats[trade.symbol] = { trades: 0, totalPL: 0, wins: 0, losses: 0 };
-                  }
-                  instrumentStats[trade.symbol].trades++;
-                  instrumentStats[trade.symbol].totalPL += trade.profit || 0;
-                  if ((trade.profit || 0) > 0) instrumentStats[trade.symbol].wins++;
-                  else instrumentStats[trade.symbol].losses++;
-                });
+                  {/* Historial de Trades - Tabla */}
+                  {demoAccount.trades.filter(t => t.closed).length === 0 ? (
+                    <div className="py-12 text-center text-[11px] text-neutral-600 border border-dashed border-white/5 rounded">
+                      no trades yet
+                    </div>
+                  ) : (
+                    <div className="border border-white/5 rounded">
+                      <div className="grid grid-cols-[40px_100px_60px_100px_100px_100px_80px_100px_120px] gap-4 px-4 py-2 border-b border-white/5 text-[10px] text-neutral-600">
+                        <div>#</div>
+                        <div>symbol</div>
+                        <div>side</div>
+                        <div className="text-right">entry</div>
+                        <div className="text-right">tp</div>
+                        <div className="text-right">size</div>
+                        <div className="text-right">time</div>
+                        <div className="text-right">date</div>
+                        <div className="text-right">p&l</div>
+                      </div>
+                      {demoAccount.trades
+                        .filter(t => t.closed)
+                        .sort((a, b) => (b.closeTime || 0) - (a.closeTime || 0))
+                        .map((trade, idx) => {
+                          const profit = trade.profit || 0;
+                          const profitPercent = ((profit / trade.riskAmount) * 100);
+                          const duration = trade.closeTime && trade.openTime 
+                            ? Math.round((trade.closeTime - trade.openTime) / 60000) 
+                            : 0;
+                          const openDate = new Date(trade.openTime);
 
-                const sortedInstruments = Object.entries(instrumentStats).sort((a, b) => b[1].totalPL - a[1].totalPL);
-
-                return (
-                  <div className="space-y-6">
-                    {/* Stats por Instrumento */}
-                    {sortedInstruments.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-3">Rendimiento por Instrumento</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                          {sortedInstruments.map(([symbol, stats]) => (
-                            <div key={symbol} className="bg-white/[0.02] border border-white/5 rounded-lg p-3">
-                              <div className="text-sm font-bold text-white mb-1">{symbol}</div>
-                              <div className={`text-lg font-black mb-1 ${
-                                stats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                              }`}>
-                                {stats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(stats.totalPL), 2)}
+                          return (
+                            <div key={trade.id} className="grid grid-cols-[40px_100px_60px_100px_100px_100px_80px_100px_120px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[11px]">
+                              <div className="text-neutral-600">{demoAccount.trades.filter(t => t.closed).length - idx}</div>
+                              <div className="text-white">{trade.symbol}</div>
+                              <div className={trade.direction === 'buy' ? 'text-emerald-400' : 'text-rose-400'}>
+                                {trade.direction}
                               </div>
-                              <div className="flex items-center gap-2 text-xs">
-                                <span className="text-neutral-500">{stats.trades} trades</span>
-                                <span className="text-emerald-400">{stats.wins}W</span>
-                                <span className="text-rose-400">{stats.losses}L</span>
+                              <div className="text-right text-neutral-400">{trade.entry.toFixed(5)}</div>
+                              <div className="text-right text-neutral-400">{trade.tp.toFixed(5)}</div>
+                              <div className="text-right text-cyan-400">{formatNumber(trade.positionSize, 0)}</div>
+                              <div className="text-right text-neutral-600">{duration}m</div>
+                              <div className="text-right text-neutral-600">
+                                {openDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} {openDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                              <div className={`text-right ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {profit >= 0 ? '+' : ''}${formatNumber(Math.abs(profit), 2)} <span className="text-neutral-600">({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(0)}%)</span>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Historial de Trades */}
-                    <div>
-                      <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-3">Historial de Trades ({demoAccount.trades.filter(t => t.closed).length})</h3>
-                      {demoAccount.trades.filter(t => t.closed).length === 0 ? (
-                        <div className="py-12 text-center text-neutral-600 border border-dashed border-white/5 rounded-xl">
-                          No hay trades cerrados aún
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {demoAccount.trades
-                            .filter(t => t.closed)
-                            .sort((a, b) => (b.closeTime || 0) - (a.closeTime || 0))
-                            .map((trade, idx) => {
-                              const profit = trade.profit || 0;
-                              const profitPercent = ((profit / trade.riskAmount) * 100);
-                              const duration = trade.closeTime && trade.openTime 
-                                ? Math.round((trade.closeTime - trade.openTime) / 60000) 
-                                : 0;
-
-                              return (
-                                <div key={trade.id} className="bg-white/[0.02] border border-white/5 rounded-lg p-4 hover:bg-white/[0.04] transition-colors">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                      <div className="text-xs text-neutral-600 font-mono w-8">#{demoAccount.trades.filter(t => t.closed).length - idx}</div>
-                                      <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-sm font-bold text-white">{trade.symbol}</span>
-                                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                                            trade.direction === 'buy' 
-                                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                                          }`}>
-                                            {trade.direction}
-                                          </span>
-                                        </div>
-                                        <div className="text-xs text-neutral-500 mt-1">
-                                          {new Date(trade.openTime).toLocaleString('es-ES', { 
-                                            day: '2-digit', 
-                                            month: 'short', 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                          })}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-6">
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">Entry</span>
-                                        <span className="text-sm font-mono text-white">{trade.entry.toFixed(5)}</span>
-                                      </div>
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">TP Target</span>
-                                        <span className="text-sm font-mono text-white">{trade.tp.toFixed(5)}</span>
-                                      </div>
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">Size</span>
-                                        <span className="text-sm font-mono text-cyan-400">{formatNumber(trade.positionSize, 2)}</span>
-                                      </div>
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">Duration</span>
-                                        <span className="text-sm font-mono text-neutral-400">{duration}min</span>
-                                      </div>
-                                      <div className="flex flex-col items-end min-w-[120px]">
-                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">P&L</span>
-                                        <div className="flex items-baseline gap-2">
-                                          <span className={`text-lg font-black ${
-                                            profit >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                                          }`}>
-                                            {profit >= 0 ? '+' : ''}${formatNumber(Math.abs(profit), 2)}
-                                          </span>
-                                          <span className={`text-xs ${
-                                            profit >= 0 ? 'text-emerald-500' : 'text-rose-500'
-                                          }`}>
-                                            ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%)
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      )}
+                          );
+                        })}
                     </div>
-                  </div>
-                );
-              })()}
-            </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
