@@ -657,7 +657,8 @@ const App: React.FC = () => {
 
       {/* Demo Screener Fullscreen */}
       {showDemoScreener && demoAccount.enabled && (
-        <div className="fixed inset-0 z-[200] bg-[#050505]">
+        <div className="fixed inset-0 z-[200] bg-[#050505] flex justify-center">
+          <div className="w-full max-w-[85%] flex flex-col">
           {/* Top Bar */}
           <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
             <div className="flex items-center gap-8 text-[11px] text-neutral-400">
@@ -791,6 +792,7 @@ const App: React.FC = () => {
                 </div>
               );
             })()}
+          </div>
           </div>
         </div>
       )}
