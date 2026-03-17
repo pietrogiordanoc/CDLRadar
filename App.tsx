@@ -661,7 +661,7 @@ const App: React.FC = () => {
           <div className="w-full max-w-[85%] flex flex-col">
           {/* Top Bar */}
           <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
-            <div className="flex items-center gap-8 text-[11px] text-neutral-400">
+            <div className="flex items-center gap-8 text-[14px] text-neutral-400">
               <div className="flex items-center gap-2">
                 <span>${formatNumber(demoAccount.initialBalance, 0)}</span>
                 <span className="text-neutral-700">→</span>
@@ -683,14 +683,14 @@ const App: React.FC = () => {
                   step="0.1"
                   min="0.1"
                   max="10"
-                  className="w-12 bg-neutral-900 border border-white/5 rounded px-1.5 py-0.5 text-[11px] text-white focus:outline-none focus:border-cyan-500/30"
+                  className="w-12 bg-neutral-900 border border-white/5 rounded px-1.5 py-0.5 text-[14px] text-white focus:outline-none focus:border-cyan-500/30"
                 />
                 <span className="text-neutral-600">%</span>
               </div>
             </div>
             <button
               onClick={() => setShowDemoScreener(false)}
-              className="text-[11px] text-neutral-500 hover:text-white transition-colors px-3 py-1 rounded hover:bg-white/5"
+              className="text-[14px] text-neutral-500 hover:text-white transition-colors px-3 py-1 rounded hover:bg-white/5"
             >
               close
             </button>
@@ -717,7 +717,7 @@ const App: React.FC = () => {
                   {/* Stats por Instrumento - Tabla */}
                   {sortedInstruments.length > 0 && (
                     <div className="border border-white/5 rounded">
-                      <div className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-white/5 text-[10px] text-neutral-600">
+                      <div className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-white/5 text-[13px] text-neutral-600">
                         <div>symbol</div>
                         <div className="text-right">p&l</div>
                         <div className="text-right">trades</div>
@@ -725,7 +725,7 @@ const App: React.FC = () => {
                         <div className="text-right">losses</div>
                       </div>
                       {sortedInstruments.map(([symbol, stats]) => (
-                        <div key={symbol} className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[11px]">
+                        <div key={symbol} className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[14px]">
                           <div className="text-white">{symbol}</div>
                           <div className={`text-right ${stats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                             {stats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(stats.totalPL), 0)}
@@ -740,12 +740,12 @@ const App: React.FC = () => {
 
                   {/* Historial de Trades - Tabla */}
                   {demoAccount.trades.filter(t => t.closed).length === 0 ? (
-                    <div className="py-12 text-center text-[11px] text-neutral-600 border border-dashed border-white/5 rounded">
+                    <div className="py-12 text-center text-[14px] text-neutral-600 border border-dashed border-white/5 rounded">
                       no trades yet
                     </div>
                   ) : (
                     <div className="border border-white/5 rounded">
-                      <div className="grid grid-cols-[40px_100px_60px_100px_100px_100px_80px_100px_120px] gap-4 px-4 py-2 border-b border-white/5 text-[10px] text-neutral-600">
+                      <div className="grid grid-cols-[40px_100px_60px_100px_100px_100px_80px_100px_120px] gap-4 px-4 py-2 border-b border-white/5 text-[13px] text-neutral-600">
                         <div>#</div>
                         <div>symbol</div>
                         <div>side</div>
@@ -768,7 +768,7 @@ const App: React.FC = () => {
                           const openDate = new Date(trade.openTime);
 
                           return (
-                            <div key={trade.id} className="grid grid-cols-[40px_100px_60px_100px_100px_100px_80px_100px_120px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[11px]">
+                            <div key={trade.id} className="grid grid-cols-[40px_100px_60px_100px_100px_100px_80px_100px_120px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[14px]">
                               <div className="text-neutral-600">{demoAccount.trades.filter(t => t.closed).length - idx}</div>
                               <div className="text-white">{trade.symbol}</div>
                               <div className={trade.direction === 'buy' ? 'text-emerald-400' : 'text-rose-400'}>
