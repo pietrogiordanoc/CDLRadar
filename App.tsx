@@ -46,6 +46,15 @@ const App: React.FC = () => {
   const [showActiveTradesOnly, setShowActiveTradesOnly] = useState(false);
   const [refreshJustCompleted, setRefreshJustCompleted] = useState(false);
   const [demoBalanceInput, setDemoBalanceInput] = useState('10000');
+  const [showDemoScreener, setShowDemoScreener] = useState(false);
+  const [demoRiskInput, setDemoRiskInput] = useState(() => {
+    const saved = localStorage.getItem('demoAccount');
+    if (saved) {
+      const account = JSON.parse(saved);
+      return account.riskPercentage?.toString() || '2';
+    }
+    return '2';
+  });
   
   const [demoAccount, setDemoAccount] = useState<DemoAccount>(() => {
     const saved = localStorage.getItem('demoAccount');
@@ -78,13 +87,22 @@ const App: React.FC = () => {
 
   const handleActivateDemo = () => {
     const balance = parseFloat(demoBalanceInput) || 10000;
+    const risk = parseFloat(demoRiskInput) || 2;
     setDemoAccount({
       enabled: true,
       initialBalance: balance,
       currentBalance: balance,
-      riskPercentage: 2,
+      riskPercentage: risk,
       trades: []
     });
+  };
+
+  const updateDemoRisk = () => {
+    const newRisk = parseFloat(demoRiskInput) || 2;
+    setDemoAccount(prev => ({
+      ...prev,
+      riskPercentage: Math.max(0.1, Math.min(10, newRisk))
+    }));
   };
 
   const handleDemoTrade = useCallback((symbol: string, direction: 'buy' | 'sell', entry: number, tp: number) => {
@@ -435,6 +453,15 @@ const App: React.FC = () => {
                   placeholder="10000"
                   className="w-24 bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
                 />
+                <input
+                  type="text"
+                  value={demoRiskInput}
+                  onChange={(e) => setDemoRiskInput(e.target.value)}
+                  placeholder="2"
+                  className="w-12 bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
+                  title="Riesgo % por trade"
+                />
+                <span className="text-[8px] text-neutral-500">%</span>
                 <button
                   onClick={handleActivateDemo}
                   className="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-400 text-[9px] font-black uppercase tracking-widest border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
@@ -473,6 +500,13 @@ const App: React.FC = () => {
                   title="Reset paper account"
                 >
                   Reset
+                </button>
+                <button
+                  onClick={() => setShowDemoScreener(true)}
+                  className="text-[8px] px-2 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40 transition-colors font-bold uppercase tracking-wider"
+                  title="Ver historial de trades"
+                >
+                  History
                 </button>
               </div>
             )}
@@ -619,6 +653,215 @@ const App: React.FC = () => {
           isVisible={isTendencialModalVisible}
           onClose={() => setIsTendencialModalVisible(false)}
         />
+      )}
+
+      {/* Demo Screener Modal */}
+      {showDemoScreener && demoAccount.enabled && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <div>
+                <h2 className="text-2xl font-black text-white">Paper Trading History</h2>
+                <p className="text-sm text-neutral-400 mt-1">Historial completo de operaciones simuladas</p>
+              </div>
+              <button
+                onClick={() => setShowDemoScreener(false)}
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Controls */}
+            <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Balance Inicial</span>
+                    <span className="text-lg font-bold text-white">${formatNumber(demoAccount.initialBalance, 2)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Balance Actual</span>
+                    <span className="text-lg font-bold text-white">${formatNumber(demoStats.currentEquity, 2)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">P&L Total</span>
+                    <span className={`text-lg font-bold ${
+                      demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    }`}>
+                      {demoStats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(demoStats.totalPL), 2)} ({demoStats.plPercentage.toFixed(2)}%)
+                    </span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Win Rate</span>
+                    <span className="text-lg font-bold text-cyan-400">{demoStats.winRate.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-1">Trades</span>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-emerald-400 font-bold">{demoStats.wins}W</span>
+                      <span className="text-neutral-600">/</span>
+                      <span className="text-rose-400 font-bold">{demoStats.losses}L</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Riesgo %</span>
+                    <input
+                      type="number"
+                      value={demoRiskInput}
+                      onChange={(e) => setDemoRiskInput(e.target.value)}
+                      onBlur={updateDemoRisk}
+                      step="0.1"
+                      min="0.1"
+                      max="10"
+                      className="w-16 bg-neutral-900 border border-white/10 rounded px-2 py-1 text-sm text-white font-mono focus:outline-none focus:border-cyan-500/50"
+                    />
+                    <span className="text-xs text-neutral-600">actual: {demoAccount.riskPercentage.toFixed(1)}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Trades List */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {(() => {
+                const instrumentStats: Record<string, { trades: number; totalPL: number; wins: number; losses: number }> = {};
+                
+                demoAccount.trades.filter(t => t.closed).forEach(trade => {
+                  if (!instrumentStats[trade.symbol]) {
+                    instrumentStats[trade.symbol] = { trades: 0, totalPL: 0, wins: 0, losses: 0 };
+                  }
+                  instrumentStats[trade.symbol].trades++;
+                  instrumentStats[trade.symbol].totalPL += trade.profit || 0;
+                  if ((trade.profit || 0) > 0) instrumentStats[trade.symbol].wins++;
+                  else instrumentStats[trade.symbol].losses++;
+                });
+
+                const sortedInstruments = Object.entries(instrumentStats).sort((a, b) => b[1].totalPL - a[1].totalPL);
+
+                return (
+                  <div className="space-y-6">
+                    {/* Stats por Instrumento */}
+                    {sortedInstruments.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-3">Rendimiento por Instrumento</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {sortedInstruments.map(([symbol, stats]) => (
+                            <div key={symbol} className="bg-white/[0.02] border border-white/5 rounded-lg p-3">
+                              <div className="text-sm font-bold text-white mb-1">{symbol}</div>
+                              <div className={`text-lg font-black mb-1 ${
+                                stats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                              }`}>
+                                {stats.totalPL >= 0 ? '+' : ''}${formatNumber(Math.abs(stats.totalPL), 2)}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="text-neutral-500">{stats.trades} trades</span>
+                                <span className="text-emerald-400">{stats.wins}W</span>
+                                <span className="text-rose-400">{stats.losses}L</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Historial de Trades */}
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-widest text-neutral-500 mb-3">Historial de Trades ({demoAccount.trades.filter(t => t.closed).length})</h3>
+                      {demoAccount.trades.filter(t => t.closed).length === 0 ? (
+                        <div className="py-12 text-center text-neutral-600 border border-dashed border-white/5 rounded-xl">
+                          No hay trades cerrados aún
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {demoAccount.trades
+                            .filter(t => t.closed)
+                            .sort((a, b) => (b.closeTime || 0) - (a.closeTime || 0))
+                            .map((trade, idx) => {
+                              const profit = trade.profit || 0;
+                              const profitPercent = ((profit / trade.riskAmount) * 100);
+                              const duration = trade.closeTime && trade.openTime 
+                                ? Math.round((trade.closeTime - trade.openTime) / 60000) 
+                                : 0;
+
+                              return (
+                                <div key={trade.id} className="bg-white/[0.02] border border-white/5 rounded-lg p-4 hover:bg-white/[0.04] transition-colors">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                      <div className="text-xs text-neutral-600 font-mono w-8">#{demoAccount.trades.filter(t => t.closed).length - idx}</div>
+                                      <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-bold text-white">{trade.symbol}</span>
+                                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                                            trade.direction === 'buy' 
+                                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                          }`}>
+                                            {trade.direction}
+                                          </span>
+                                        </div>
+                                        <div className="text-xs text-neutral-500 mt-1">
+                                          {new Date(trade.openTime).toLocaleString('es-ES', { 
+                                            day: '2-digit', 
+                                            month: 'short', 
+                                            hour: '2-digit', 
+                                            minute: '2-digit' 
+                                          })}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-6">
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">Entry</span>
+                                        <span className="text-sm font-mono text-white">{trade.entry.toFixed(5)}</span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">TP Target</span>
+                                        <span className="text-sm font-mono text-white">{trade.tp.toFixed(5)}</span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">Size</span>
+                                        <span className="text-sm font-mono text-cyan-400">{formatNumber(trade.positionSize, 2)}</span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">Duration</span>
+                                        <span className="text-sm font-mono text-neutral-400">{duration}min</span>
+                                      </div>
+                                      <div className="flex flex-col items-end min-w-[120px]">
+                                        <span className="text-[9px] uppercase tracking-widest text-neutral-600">P&L</span>
+                                        <div className="flex items-baseline gap-2">
+                                          <span className={`text-lg font-black ${
+                                            profit >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                                          }`}>
+                                            {profit >= 0 ? '+' : ''}${formatNumber(Math.abs(profit), 2)}
+                                          </span>
+                                          <span className={`text-xs ${
+                                            profit >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                                          }`}>
+                                            ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%)
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
