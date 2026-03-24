@@ -402,7 +402,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-[#050505] text-white selection:bg-emerald-500/30">
-      <header className={`sticky top-0 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-8 py-5 ${showDemoScreener ? 'z-[250]' : 'z-50'}`}>
+      <header className={`sticky top-0 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-8 py-5 ${showDemoScreener ? 'z-[250]' : 'z-[150]'}`}>
         <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className={`flex items-center space-x-4 p-2 relative ${showDebugFrames ? 'border-2 border-red-500' : ''}`}>
             {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-2 text-xs text-red-500 z-50">HEADER-1: LOGO</span>}
