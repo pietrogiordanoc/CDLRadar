@@ -244,9 +244,9 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
     
     // Mensaje educativo sobre pasividad si no hay señales activas
     if (advice.length === 0 || (!overlap && !americaOpen && !europeOpen)) {
-      advice.push("💡 No hay alertas activas - Esto es NORMAL y SALUDABLE");
-      advice.push("Los traders profesionales esperan el 80% del tiempo. Paciencia es disciplina.");
-      advice.push("No forzar trades cuando el mercado está pasivo es la clave del éxito a largo plazo");
+      advice.push("💡 Si no escuchas alertas, es porque no hay oportunidades claras en este momento");
+      advice.push("Esperar es parte del trabajo. Los traders profesionales solo operan 20% del tiempo.");
+      advice.push("Forzar trades cuando el mercado está lateral es la forma más rápida de perder dinero");
     }
 
     return {
@@ -342,12 +342,14 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
                   <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
                   </svg>
-                  <span className="text-[10px] font-bold text-blue-300">
-                    Market Quiet: {marketStats.quietPercentage}%
-                  </span>
-                  <span className="text-[9px] text-blue-400/60">
-                    ({marketStats.waiting}/{marketStats.totalConnected} waiting)
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-blue-300 leading-tight">
+                      Mercado Pasivo
+                    </span>
+                    <span className="text-[8px] text-blue-400/70 leading-tight">
+                      {marketStats.waiting} de {marketStats.totalConnected} esperando señal
+                    </span>
+                  </div>
                 </div>
               </>
             )}
@@ -408,6 +410,22 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
         {/* Panel expandido con consejos */}
         {expanded && sessions.advice.length > 0 && (
           <div className="border-t border-white/20 bg-black/20">
+            {/* Header con botón cerrar */}
+            <div className="px-6 py-2 flex items-center justify-between border-b border-white/5">
+              <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">
+                MARKET ADVICE
+              </span>
+              <button
+                onClick={() => setExpanded(false)}
+                className="p-1 text-white/40 hover:text-white/80 transition-colors"
+                title="Cerrar panel"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
             {/* Consejos */}
             <div className="px-6 py-4 flex flex-col gap-2.5">
               {sessions.advice.map((msg, idx) => (
