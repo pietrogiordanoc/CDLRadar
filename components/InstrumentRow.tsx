@@ -524,7 +524,14 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
               <div className={`flex items-center text-xs font-mono px-2 py-0.5 rounded border ${pl.color}`}>
                 <span>{pl.prefix}{pl.value.toFixed(2)}%</span>
               </div>
-              <button onClick={handleCloseTrade} title="Cerrar trade" className="p-1 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseTrade();
+                }} 
+                title="Cerrar trade" 
+                className="p-1 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
