@@ -56,9 +56,15 @@ const setGlobalVolume = (volume: number) => {
   alertVolume = Math.max(0, Math.min(1, volume));
 };
 
+// Get audio context (for checking state)
+const getContext = (): AudioContext | null => {
+  return audioCtx;
+};
+
 // Expose public methods
 export const audioService = {
   initialize: initializeAudioContext,
   play: playSound,
-  setVolume: setGlobalVolume
+  setVolume: setGlobalVolume,
+  getContext
 };

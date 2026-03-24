@@ -43,6 +43,7 @@ const App: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [volume, setVolume] = useState(() => parseFloat(localStorage.getItem('alertVolume') || '0.5'));
   const [charts, setCharts] = useState<Record<string, 'visible' | 'minimized'>>({});
+  const [audioReady, setAudioReady] = useState(() => localStorage.getItem('audioActivated') === 'true');
   const [isRadarVisible, setIsRadarVisible] = useState(false);
   const [isTendencialModalVisible, setIsTendencialModalVisible] = useState(false);
   const [showActiveTradesOnly, setShowActiveTradesOnly] = useState(false);
@@ -273,6 +274,34 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  // Auto-activar audio en el primer click del usuario (bypass autoplay policy)
+  useEffect(() => {
+    if (audioReady) return; // Ya activado previamente
+
+    const activateAudio = async () => {
+      const ctx = audioService.getContext();
+      if (ctx && ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+      setAudioReady(true);
+      localStorage.setItem('audioActivated', 'true');
+    };
+
+    const handleFirstInteraction = () => {
+      activateAudio();
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    window.addEventListener('click', handleFirstInteraction);
+    window.addEventListener('keydown', handleFirstInteraction);
+    
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, [audioReady]);
+
   const handleRefreshComplete = useCallback(() => {
     setRefreshTrigger(t => t + 1);
     setRefreshJustCompleted(true);
@@ -406,6 +435,18 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-[#050505] text-white selection:bg-emerald-500/30">
+      {/* Mensaje de activación de audio */}
+      {!audioReady && (
+        <div className="fixed top-4 right-4 z-[500] px-4 py-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg shadow-lg backdrop-blur-sm animate-pulse">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            </svg>
+            <span className="text-xs font-medium text-orange-300">Click anywhere to enable audio alerts</span>
+          </div>
+        </div>
+      )}
+
       <header className={`sticky top-0 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-8 py-5 ${showDemoScreener ? 'z-[250]' : hasVisibleChart ? 'z-50' : 'z-[150]'}`}>
         <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className={`flex items-center space-x-4 p-2 relative ${showDebugFrames ? 'border-2 border-red-500' : ''}`}>
