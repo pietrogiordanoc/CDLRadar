@@ -138,7 +138,14 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
 
   return (
     <div 
-      className={`fixed inset-0 flex items-center justify-center transition-all duration-300 ${isVisible ? 'z-[100] bg-black/80 backdrop-blur-sm pointer-events-auto' : 'z-10 bg-transparent pointer-events-none invisible'}`}
+      className="fixed inset-0 flex items-center justify-center transition-all duration-500"
+      style={{
+        zIndex: isVisible ? 100 : 10,
+        backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.8)' : 'transparent',
+        backdropFilter: isVisible ? 'blur(8px)' : 'none',
+        pointerEvents: isVisible ? 'auto' : 'none',
+        transform: isVisible ? 'translateX(0)' : 'translateX(200vw)',
+      }}
       onClick={isVisible ? onMinimize : undefined}
     >
       <style>{`
