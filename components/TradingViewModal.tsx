@@ -139,6 +139,11 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
   }, [instrument.symbol]);
 
   const thumbnailTop = 80 + (thumbnailIndex * 220);
+  
+  // Mantener siempre el mismo tamaño para evitar que TradingView reinicialice
+  const scale = isVisible ? 1 : 0.2; // 20% en thumbnail
+  const thumbnailWidth = 1600; // Tamaño base del widget
+  const thumbnailHeight = 900;
 
   return (
     <div 
@@ -156,9 +161,10 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
         } : {
           top: `${thumbnailTop}px`,
           right: '16px',
-          width: '320px',
-          height: '200px',
+          width: `${thumbnailWidth * scale}px`,
+          height: `${thumbnailHeight * scale}px`,
           backgroundColor: 'transparent',
+          transformOrigin: 'top right',
         }),
       }}
       onClick={isVisible ? onMinimize : undefined}
@@ -177,8 +183,14 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
         className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 transition-all duration-300 ease-in-out ${
           isVisible 
             ? `border-rose-500/50 ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'} animate-modal-slide-up`
-            : 'border-cyan-500/50 w-full h-full rounded-lg cursor-pointer hover:border-cyan-400'
+            : 'border-cyan-500/50 rounded-lg cursor-pointer hover:border-cyan-400'
         }`}
+        style={{
+          width: isVisible ? (isMaximized ? '100vw' : '1600px') : `${thumbnailWidth}px`,
+          height: isVisible ? (isMaximized ? '100vh' : '900px') : `${thumbnailHeight}px`,
+          transform: isVisible ? 'scale(1)' : `scale(${scale})`,
+          transformOrigin: 'top right',
+        }}
         onClick={(e) => {
           e.stopPropagation();
           if (!isVisible) {
