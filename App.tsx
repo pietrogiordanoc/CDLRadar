@@ -899,7 +899,7 @@ const App: React.FC = () => {
                             {/* Trades activos */}
                             <div>
                               {/* Headers de columnas */}
-                              <div className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px] gap-4 px-4 py-2 bg-white/[0.01] border-b border-white/5 text-[11px] text-neutral-600">
+                              <div className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px_50px] gap-4 px-4 py-2 bg-white/[0.01] border-b border-white/5 text-[11px] text-neutral-600">
                                 <div>#</div>
                                 <div>type</div>
                                 <div>side</div>
@@ -910,6 +910,7 @@ const App: React.FC = () => {
                                 <div className="text-right">open</div>
                                 <div className="text-right">p&l</div>
                                 <div className="text-right">%</div>
+                                <div className="text-center">action</div>
                               </div>
                               
                               {trades.map((trade, idx) => {
@@ -923,7 +924,7 @@ const App: React.FC = () => {
                                 const openDate = new Date(trade.openTime);
 
                                 return (
-                                  <div key={trade.id} className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[14px]">
+                                  <div key={trade.id} className="grid grid-cols-[40px_60px_60px_100px_100px_100px_80px_100px_100px_60px_50px] gap-4 px-4 py-2 border-b border-white/5 hover:bg-white/[0.02] text-[14px]">
                                     <div className="text-neutral-600">#{trades.length - idx}</div>
                                     <div className="text-neutral-500 text-xs uppercase">{trade.instrumentType}</div>
                                     <div className={trade.direction === 'buy' ? 'text-emerald-400' : 'text-rose-400'}>
@@ -941,6 +942,15 @@ const App: React.FC = () => {
                                     </div>
                                     <div className={`text-right ${currentProfit >= 0 ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
                                       {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(0)}%
+                                    </div>
+                                    <div className="text-center">
+                                      <button 
+                                        onClick={() => handleCloseDemoTrade(trade.id, currentPrice)}
+                                        className="px-2 py-0.5 text-xs text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+                                        title="Close trade"
+                                      >
+                                        ✕
+                                      </button>
                                     </div>
                                   </div>
                                 );
