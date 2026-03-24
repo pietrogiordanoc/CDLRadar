@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import fundamentalsData from '../fundamentals.json';
 
 interface SessionInfo {
   name: string;
@@ -7,7 +8,24 @@ interface SessionInfo {
   opensIn?: string;
 }
 
-const SessionMonitor: React.FC = () => {
+interface FundamentalEvent {
+  name: string;
+  description: string;
+  timestamp: number;
+  impact: 'high' | 'extreme';
+}
+
+interface SessionMonitorProps {
+  marketStats?: {
+    totalConnected: number;
+    waiting: number;
+    entering: number;
+    exiting: number;
+    quietPercentage: number;
+  };
+}
+
+const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
   const [expanded, setExpanded] = useState(false);
   const [sessions, setSessions] = useState<{
     asia: SessionInfo;
@@ -22,6 +40,82 @@ const SessionMonitor: React.FC = () => {
   });
   const [hasUnreadAdvice, setHasUnreadAdvice] = useState(false);
   const [lastAdviceHash, setLastAdviceHash] = useState('');
+
+  // Calcular próximo NFP (primer viernes del mes a 08:30 ET)
+  const getNextNFP = (): number => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    
+    // Buscar primer viernes de este mes
+    let firstFriday = new Date(year, month, 1);
+    while (firstFriday.getDay() !== 5) {
+      firstFriday.setDate(firstFriday.getDate() + 1);
+    }
+    
+    // 08:30 ET = 13:30 UTC (considerando horario estándar)
+    firstFriday.setUTCHours(13, 30, 0, 0);
+    
+    // Si ya pasó, calcular el del próximo mes
+    if (firstFriday.getTime() < now.getTime()) {
+      const nextMonth = month + 1;
+      firstFriday = new Date(year + Math.floor(nextMonth / 12), nextMonth % 12, 1);
+      while (firstFriday.getDay() !== 5) {
+        firstFriday.setDate(firstFriday.getDate() + 1);
+      }
+      firstFriday.setUTCHours(13, 30, 0, 0);
+    }
+    
+    return firstFriday.getTime();
+  };
+
+  // Parsear eventos manuales del JSON
+  const getUpcomingEvents = (): FundamentalEvent[] => {
+    const now = Date.now();
+    const events: FundamentalEvent[] = [];
+    
+    // Agregar NFP automático
+    const nfpTimestamp = getNextNFP();
+    events.push({
+      name: 'NFP',
+      description: 'Non-Farm Payrolls (US Employment Report)',
+      timestamp: nfpTimestamp,
+      impact: 'extreme'
+    });
+    
+    // Agregar eventos manuales del JSON
+    fundamentalsData.events.forEach(event => {
+      if (event.type === 'manual' && event.dates) {
+        event.dates.forEach(dateStr => {
+          // Parsear "2026-04-10 08:30 ET"
+          const [datePart, timePart, tz] = dateStr.split(' ');
+          const [year, month, day] = datePart.split('-').map(Number);
+          const [hour, minute] = timePart.split(':').map(Number);
+          
+          let utcHour = hour;
+          // Convertir ET a UTC (ET = UTC-5 en invierno, UTC-4 en verano)
+          // Simplificamos: ET = UTC-5
+          if (tz === 'ET') utcHour = hour + 5;
+          else if (tz === 'GMT') utcHour = hour; // GMT = UTC
+          
+          const eventDate = new Date(Date.UTC(year, month - 1, day, utcHour, minute));
+          const timestamp = eventDate.getTime();
+          
+          // Solo eventos futuros dentro de los próximos 30 días
+          if (timestamp > now && timestamp < now + 30 * 24 * 60 * 60 * 1000) {
+            events.push({
+              name: event.name,
+              description: event.description,
+              timestamp,
+              impact: event.impact as 'high' | 'extreme'
+            });
+          }
+        });
+      }
+    });
+    
+    return events.sort((a, b) => a.timestamp - b.timestamp);
+  };
 
   const getSessionStatus = () => {
     const now = new Date();
@@ -112,6 +206,49 @@ const SessionMonitor: React.FC = () => {
       advice.push("⏰ Europa abre en " + formatTime(europeOpensIn) + " - Ten paciencia en la apertura");
     }
 
+    // 📅 ALERTAS DE FUNDAMENTALES
+    const upcomingEvents = getUpcomingEvents();
+    const nowTimestamp = now.getTime();
+    
+    upcomingEvents.forEach(event => {
+      const timeUntil = event.timestamp - nowTimestamp;
+      const hoursUntil = timeUntil / (1000 * 60 * 60);
+      const daysUntil = timeUntil / (1000 * 60 * 60 * 24);
+      
+      // DURANTE el evento (30min antes a 2h después)
+      if (timeUntil > -2 * 60 * 60 * 1000 && timeUntil < 30 * 60 * 1000) {
+        advice.unshift(`🔴 ${event.name} ACTIVO AHORA - NO OPERAR. Volatilidad extrema en curso.`);
+        advice.unshift(`Espera al menos 2 horas después de ${event.description} para retomar trading`);
+      }
+      // 4h antes
+      else if (hoursUntil > 0 && hoursUntil <= 4) {
+        const h = Math.floor(hoursUntil);
+        const m = Math.round((hoursUntil - h) * 60);
+        advice.unshift(`🟠 ${event.name} en ${h}h ${m}m - NO abras nuevos trades. Cierra posiciones abiertas.`);
+        advice.unshift(`${event.description} causa movimientos impredecibles de 50-150 pips`);
+      }
+      // 24h antes
+      else if (hoursUntil > 4 && hoursUntil <= 24) {
+        const h = Math.floor(hoursUntil);
+        advice.unshift(`🟡 ${event.name} en ${h}h - Reduce exposición. Evita trades de largo plazo.`);
+        advice.unshift(`Mercado puede estar lateral hasta ${event.description}`);
+      }
+      // 2-7 días antes (aviso informativo)
+      else if (daysUntil > 1 && daysUntil <= 7) {
+        const d = Math.floor(daysUntil);
+        const eventDate = new Date(event.timestamp);
+        const dateStr = eventDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        advice.push(`📅 Próximo ${event.name}: ${dateStr} (en ${d} días)`);
+      }
+    });
+    
+    // Mensaje educativo sobre pasividad si no hay señales activas
+    if (advice.length === 0 || (!overlap && !americaOpen && !europeOpen)) {
+      advice.push("💡 No hay alertas activas - Esto es NORMAL y SALUDABLE");
+      advice.push("Los traders profesionales esperan el 80% del tiempo. Paciencia es disciplina.");
+      advice.push("No forzar trades cuando el mercado está pasivo es la clave del éxito a largo plazo");
+    }
+
     return {
       asia: {
         name: 'ASIA',
@@ -196,9 +333,53 @@ const SessionMonitor: React.FC = () => {
             <SessionBadge session={sessions.europe} />
             <div className="w-px h-5 bg-white/10" />
             <SessionBadge session={sessions.america} />
+            
+            {/* Market Quietness Indicator */}
+            {marketStats && marketStats.quietPercentage >= 70 && (
+              <>
+                <div className="w-px h-5 bg-white/10" />
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+                  </svg>
+                  <span className="text-[10px] font-bold text-blue-300">
+                    Market Quiet: {marketStats.quietPercentage}%
+                  </span>
+                  <span className="text-[9px] text-blue-400/60">
+                    ({marketStats.waiting}/{marketStats.totalConnected} waiting)
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Badge de evento crítico (menos de 4h) */}
+            {(() => {
+              const criticalEvent = getUpcomingEvents().find(e => {
+                const hoursUntil = (e.timestamp - Date.now()) / (1000 * 60 * 60);
+                return hoursUntil > -2 && hoursUntil <= 4;
+              });
+              
+              if (criticalEvent) {
+                const hoursUntil = (criticalEvent.timestamp - Date.now()) / (1000 * 60 * 60);
+                const isActive = hoursUntil < 0.5 && hoursUntil > -2;
+                
+                return (
+                  <div className={`flex items-center gap-2 px-3 py-1.5 ${
+                    isActive 
+                      ? 'bg-rose-500/30 border-rose-500/50' 
+                      : 'bg-orange-500/20 border-orange-500/30'
+                  } border rounded-lg ${isActive ? 'animate-pulse' : ''}`}>
+                    <span className="text-xs font-black text-white">
+                      {isActive ? '🔴' : '🟠'} {criticalEvent.name}
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            
             {sessions.advice.length > 0 && hasUnreadAdvice && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg animate-pulse">
                 <span className="text-xs font-bold text-amber-300">
@@ -226,14 +407,66 @@ const SessionMonitor: React.FC = () => {
 
         {/* Panel expandido con consejos */}
         {expanded && sessions.advice.length > 0 && (
-          <div className="border-t border-white/20 px-6 py-4 bg-black/20">
-            <div className="flex flex-col gap-2.5">
+          <div className="border-t border-white/20 bg-black/20">
+            {/* Consejos */}
+            <div className="px-6 py-4 flex flex-col gap-2.5">
               {sessions.advice.map((msg, idx) => (
                 <div key={idx} className="flex items-start gap-2.5 text-xs font-mono text-neutral-300">
                   <span className="text-cyan-400 mt-0.5 text-sm">•</span>
                   <span>{msg}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Eventos fundamentales próximos */}
+            <div className="border-t border-white/10 px-6 py-3 bg-black/10">
+              <div className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">
+                📅 UPCOMING FUNDAMENTALS
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {getUpcomingEvents().slice(0, 3).map((event, idx) => {
+                  const eventDate = new Date(event.timestamp);
+                  const timeUntil = event.timestamp - Date.now();
+                  const daysUntil = Math.floor(timeUntil / (1000 * 60 * 60 * 24));
+                  const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+                  
+                  const dateStr = eventDate.toLocaleDateString('es-ES', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  });
+                  
+                  const timeLabel = daysUntil > 0 
+                    ? `en ${daysUntil}d ${hoursUntil % 24}h`
+                    : `en ${hoursUntil}h`;
+                  
+                  return (
+                    <div key={idx} className="flex items-center justify-between text-[11px] px-2 py-1.5 bg-white/[0.03] rounded border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-black ${event.impact === 'extreme' ? 'text-rose-400' : 'text-orange-400'}`}>
+                          {event.name}
+                        </span>
+                        <span className="text-neutral-500 text-[10px]">
+                          {event.description}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-neutral-400 font-mono text-[10px]">
+                          {dateStr}
+                        </span>
+                        <span className={`font-bold ${
+                          hoursUntil <= 4 ? 'text-rose-400' : 
+                          hoursUntil <= 24 ? 'text-orange-400' : 
+                          'text-cyan-400'
+                        }`}>
+                          {timeLabel}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}

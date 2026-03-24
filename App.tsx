@@ -366,6 +366,31 @@ const App: React.FC = () => {
     return true;
   }, [filter, searchQuery, forceUpdateTrigger, showActiveTradesOnly]);
 
+  // Calcular estadísticas de actividad del mercado
+  const marketQuietnessStats = useMemo(() => {
+    const visibleInstruments = ALL_INSTRUMENTS.filter(i => isInstrumentVisible(i));
+    const totalConnected = visibleInstruments.length;
+    
+    let waiting = 0;
+    let entering = 0;
+    let exiting = 0;
+    
+    visibleInstruments.forEach(inst => {
+      const analysis = GlobalAnalysisCache[inst.id]?.analysis;
+      if (analysis) {
+        if (analysis.action === ActionType.ESPERAR) waiting++;
+        else if (analysis.action === ActionType.ENTRAR_AHORA) entering++;
+        else if (analysis.action === ActionType.SALIR) exiting++;
+      } else {
+        waiting++; // Si no hay análisis, cuenta como waiting
+      }
+    });
+    
+    const quietPercentage = totalConnected > 0 ? Math.round((waiting / totalConnected) * 100) : 0;
+    
+    return { totalConnected, waiting, entering, exiting, quietPercentage };
+  }, [forceUpdateTrigger, filter, searchQuery, showActiveTradesOnly]);
+
   const sortedInstruments = useMemo(() => {
     const items = ALL_INSTRUMENTS;
     const currentAnalyses = analysesRef.current;
@@ -646,7 +671,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-[1500px] mx-auto px-8 mt-6">
-        <SessionMonitor />
+        <SessionMonitor marketStats={marketQuietnessStats} />
         
         <div className="grid grid-cols-1 gap-4">
           <div className="flex items-center justify-start gap-4 px-4 py-3 bg-white/[0.02] rounded-xl border border-white/5 mb-4 text-[10px] uppercase tracking-widest text-neutral-600">
