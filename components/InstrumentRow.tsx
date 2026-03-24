@@ -23,7 +23,7 @@ interface InstrumentRowProps {
   onOpenChart: (symbol: string) => void;
   chartStatus?: 'visible' | 'minimized';
   demoAccount?: any;
-  onDemoTrade?: (symbol: string, direction: 'buy' | 'sell', entry: number, tp: number) => any;
+  onDemoTrade?: (symbol: string, instrumentType: 'forex' | 'indices' | 'stocks' | 'commodities' | 'crypto', direction: 'buy' | 'sell', entry: number, tp: number) => any;
   onCloseDemoTrade?: (tradeId: string, currentPrice: number) => void;
   refreshJustCompleted?: boolean;
 }
@@ -241,7 +241,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
 
     // Si demo está activo, crear trade demo
     if (demoAccount?.enabled && onDemoTrade && tradeSetup) {
-      const demoTrade = onDemoTrade(instrument.symbol, direction, currentPrice, tradeSetup.tp);
+      const demoTrade = onDemoTrade(instrument.symbol, instrument.type, direction, currentPrice, tradeSetup.tp);
       if (demoTrade) {
         trade.demoTradeId = demoTrade.id;
       }

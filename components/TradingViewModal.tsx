@@ -8,6 +8,8 @@ interface TradingViewModalProps {
   isVisible: boolean;
   onMinimize: () => void;
   onClose: () => void;
+  thumbnailIndex?: number;
+  onExpand: () => void;
 }
 
 const formatSetupValue = (value: number): string => {
@@ -16,7 +18,7 @@ const formatSetupValue = (value: number): string => {
   return value.toFixed(6);
 };
 
-const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSetup, mainSignal, isVisible, onMinimize, onClose }) => {
+const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSetup, mainSignal, isVisible, onMinimize, onClose, thumbnailIndex = 0, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const initializedSymbolRef = useRef<string | null>(null);
@@ -136,12 +138,28 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
     
   }, [instrument.symbol]);
 
+  const thumbnailTop = 80 + (thumbnailIndex * 220);
+
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="fixed transition-all duration-300"
       style={{
-        zIndex: isVisible ? 100 : 10,
-        pointerEvents: isVisible ? 'auto' : 'none',
+        zIndex: isVisible ? 100 : 50,
+        pointerEvents: 'auto',
+        ...(isVisible ? {
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(8px)',
+        } : {
+          top: `${thumbnailTop}px`,
+          right: '16px',
+          width: '320px',
+          height: '200px',
+          backgroundColor: 'transparent',
+        }),
       }}
       onClick={isVisible ? onMinimize : undefined}
     >
@@ -156,18 +174,30 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
       `}</style>
 
       <div 
-        className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 border-rose-500/50 transition-all duration-300 ease-in-out ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'}`}
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+        className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 transition-all duration-300 ease-in-out ${
+          isVisible 
+            ? `border-rose-500/50 ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'} animate-modal-slide-up`
+            : 'border-cyan-500/50 w-full h-full rounded-lg cursor-pointer hover:border-cyan-400'
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isVisible) {
+            // En modo thumbnail: expandir al hacer click
+            onExpand();
+          }
+        }}
       >
         <div className="relative flex items-center justify-between px-4 py-2 border-b border-white/10 shrink-0">
           <div className="flex items-center space-x-3">
-            <span className="text-lg font-bold tracking-tighter text-white">{instrument.symbol}</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
-              LIVE ADVANCED ENGINE
-            </span>
+            <span className={`font-bold tracking-tighter text-white ${isVisible ? 'text-lg' : 'text-sm'}`}>{instrument.symbol}</span>
+            {isVisible && (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
+                LIVE ADVANCED ENGINE
+              </span>
+            )}
           </div>
 
-          {tradeSetup && (
+          {tradeSetup && isVisible && (
             <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 text-cyan-300">
               <div className="flex items-center gap-4 text-sm font-mono">
                 <span>E: {formatSetupValue(tradeSetup.entry)}</span>
@@ -179,20 +209,24 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
           )}
           
           <div className="flex items-center space-x-2">
-            <button 
-              onClick={(e) => { e.stopPropagation(); onMinimize(); }}
-              className="p-2 text-neutral-500 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Minimize">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M20 12H4" /></svg>
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsMaximized(!isMaximized); }}
-              className="p-2 text-neutral-500 hover:text-white hover:bg-white/10 rounded-md transition-colors" title={isMaximized ? "Restore" : "Maximize"}>
-               {isMaximized ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-               ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-               )}
-            </button>
+            {isVisible && (
+              <>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onMinimize(); }}
+                  className="p-2 text-neutral-500 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Minimize">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M20 12H4" /></svg>
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setIsMaximized(!isMaximized); }}
+                  className="p-2 text-neutral-500 hover:text-white hover:bg-white/10 rounded-md transition-colors" title={isMaximized ? "Restore" : "Maximize"}>
+                   {isMaximized ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+                   ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                   )}
+                </button>
+              </>
+            )}
             <button 
               onClick={handleClose}
               className="p-2 text-neutral-400 hover:text-white hover:bg-rose-500/50 rounded-md transition-colors"

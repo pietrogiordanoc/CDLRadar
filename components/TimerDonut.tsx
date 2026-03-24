@@ -5,21 +5,29 @@ interface TimerDonutProps {
   durationMs: number;
   onComplete: () => void;
   isPaused: boolean;
+  onClick?: () => void;
 }
 
-const TimerDonut: React.FC<TimerDonutProps> = ({ durationMs, onComplete, isPaused }) => {
+const TimerDonut: React.FC<TimerDonutProps> = ({ durationMs, onComplete, isPaused, onClick }) => {
   const [timeLeft, setTimeLeft] = useState(durationMs);
   const radius = 18; // Radio aumentado ligeramente
   const circumference = 2 * Math.PI * radius;
   const progress = ((durationMs - timeLeft) / durationMs) * circumference;
 
-  useEffect(() => {
-    if (isPaused) return;
+  const handleManualRefresh = () => {
+    // Feedback inmediato: al click, refresca y reinicia el contador visual.
+    onClick?.();
+    setTimeLeft(durationMs);
+  };
 
+  useEffect(() => {
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1000) {
-          onComplete();
+          // Solo llamar onComplete si no está pausado
+          if (!isPaused) {
+            onComplete();
+          }
           return durationMs;
         }
         return prev - 1000;
@@ -36,7 +44,13 @@ const TimerDonut: React.FC<TimerDonutProps> = ({ durationMs, onComplete, isPause
   };
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-1.5">
+    <button
+      type="button"
+      className="flex flex-col items-center justify-center space-y-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={handleManualRefresh}
+      title="Click to refresh"
+      aria-label="Manual refresh"
+    >
       <div className="relative inline-flex items-center justify-center">
         <svg className="w-14 h-14 transform -rotate-90">
           <circle
@@ -64,8 +78,7 @@ const TimerDonut: React.FC<TimerDonutProps> = ({ durationMs, onComplete, isPause
           {formatTime(timeLeft)}
         </span>
       </div>
-      <span className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">Refresh</span>
-    </div>
+    </button>
   );
 };
 

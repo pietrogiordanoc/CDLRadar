@@ -669,10 +669,16 @@ const App: React.FC = () => {
       </main>
 
       <div id="chart-modals-container">
-        {Object.entries(charts).map(([symbol, status]) => {
+        {Object.entries(charts).map(([symbol, status], index) => {
           const instrument = ALL_INSTRUMENTS.find(i => i.symbol === symbol);
           const analysis = instrument ? analysesRef.current[instrument.id] : null;
           if (!instrument) return null;
+          
+          // Calcular índice para thumbnails (solo contar los minimizados antes de este)
+          const minimizedBefore = Object.entries(charts)
+            .slice(0, index)
+            .filter(([_, s]) => s === 'minimized').length;
+          
           return (
             <TradingViewModal
               key={symbol}
@@ -682,6 +688,8 @@ const App: React.FC = () => {
               isVisible={status === 'visible'}
               onMinimize={() => handleMinimizeChart(symbol)}
               onClose={() => handleCloseChart(symbol)}
+              onExpand={() => handleOpenChart(symbol)}
+              thumbnailIndex={status === 'minimized' ? minimizedBefore : 0}
             />
           );
         })}
