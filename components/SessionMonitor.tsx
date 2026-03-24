@@ -53,33 +53,61 @@ const SessionMonitor: React.FC = () => {
       return h > 0 ? `${h}h ${m}m` : `${m}m`;
     };
 
-    // CONSEJOS INTELIGENTES
+    // CONSEJOS INTELIGENTES (tono humano y educativo)
     const overlap = europeOpen && americaOpen; // Solapamiento EU+NY
     
     if (overlap) {
-      advice.push("FOREX: Liquidez MAXIMA (Europa + NY activas)");
+      advice.push("🔥 Momento óptimo para FOREX: Europa y Nueva York operan juntas (máxima liquidez y volatilidad)");
+      advice.push("Las señales de EUR/USD, GBP/USD y USD/CHF son más confiables ahora");
     } else if (europeOpen && !americaOpen) {
-      advice.push("Indices EU operativos (DAX, CAC, FTSE) - Indices USA cerrados");
+      advice.push("✅ Puedes operar índices europeos (DAX, CAC, FTSE) con confianza");
+      advice.push("⚠️ Evita índices americanos (SPX, IXIC, DJI) - Wall Street está cerrado");
+      advice.push("FOREX: Liquidez moderada, espera apertura de NY (14:30 UTC) para mayor movimiento");
     } else if (americaOpen && !europeOpen) {
-      advice.push("Indices USA operativos (SPX, IXIC, DJI) - Indices EU cerrados");
+      advice.push("✅ Wall Street operativo - Señales de SPX, IXIC, DJI y acciones USA son válidas");
+      advice.push("⚠️ Evita índices europeos - Mercado EU ya cerró");
+      advice.push("FOREX: Buena liquidez con pares del dólar (USD/JPY, USD/CAD, etc)");
     } else if (asiaOpen && !europeOpen && !americaOpen) {
-      advice.push("FOREX: Liquidez BAJA (solo Asia) - Indices cerrados");
+      advice.push("🌏 Solo sesión asiática activa - Liquidez limitada en FOREX");
+      advice.push("⚠️ Evita operar FOREX ahora si eres principiante (spreads más altos, movimientos erráticos)");
+      advice.push("Índices asiáticos (N225, HSI) podrían tener señales, pero verifica horarios locales");
     }
 
     if (americaOpen && americaTimeLeft < 30) {
-      advice.push("NYSE cierra en " + formatTime(americaTimeLeft) + " - Evita nuevas entradas");
+      advice.push("⏰ Wall Street cierra en " + formatTime(americaTimeLeft) + " - NO abras nuevas posiciones");
+      advice.push("Última media hora suele tener movimientos bruscos por cierres institucionales");
     }
 
     if (europeOpen && europeTimeLeft < 30) {
-      advice.push("Mercado EU cierra en " + formatTime(europeTimeLeft) + " - Precaucion DAX/CAC");
+      advice.push("⏰ Mercados europeos cierran en " + formatTime(europeTimeLeft) + " - Precaución con DAX/CAC/FTSE");
+      advice.push("Evita abrir trades nuevos en índices EU, cierra posiciones abiertas si puedes");
     }
 
     if (!asiaOpen && !europeOpen && !americaOpen && (utcDay >= 1 && utcDay <= 5)) {
-      advice.push("Mercados principales cerrados - Solo CRYPTO 24/7 operativo");
+      advice.push("😴 Mercados principales cerrados - Es momento de descanso");
+      advice.push("Solo CRYPTO opera 24/7, pero ten precaución: menor liquidez en estas horas");
+      advice.push("Revisa señales acumuladas y prepara estrategia para mañana");
     }
 
-    if (utcDay === 0 || utcDay === 6) {
-      advice.push("Fin de semana - Solo FOREX (desde Dom 22:00) y CRYPTO");
+    if (utcDay === 0) {
+      // Domingo
+      advice.push("📅 Domingo - Solo FOREX desde las 22:00 UTC y CRYPTO 24/7");
+      advice.push("Los mercados de acciones e índices abren el lunes. Usa este tiempo para planificar");
+    } else if (utcDay === 6) {
+      // Sábado
+      advice.push("📅 Fin de semana - Mercados cerrados excepto CRYPTO");
+      advice.push("⚠️ Ignora señales de FOREX, ÍNDICES y ACCIONES hasta el domingo 22:00 UTC");
+      advice.push("Es buen momento para revisar tu historial y analizar trades de la semana");
+    }
+
+    // Avisos de apertura próxima
+    if (!americaOpen && americaOpensIn > 0 && americaOpensIn <= 30 && utcDay >= 1 && utcDay <= 5) {
+      advice.push("⏰ Wall Street abre en " + formatTime(americaOpensIn) + " - Prepárate para volatilidad inicial");
+      advice.push("Los primeros 15-30 minutos suelen ser caóticos, espera a que se estabilice");
+    }
+
+    if (!europeOpen && europeOpensIn > 0 && europeOpensIn <= 30 && utcDay >= 1 && utcDay <= 5) {
+      advice.push("⏰ Europa abre en " + formatTime(europeOpensIn) + " - Ten paciencia en la apertura");
     }
 
     return {
