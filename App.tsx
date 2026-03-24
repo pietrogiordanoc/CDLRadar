@@ -298,16 +298,11 @@ const App: React.FC = () => {
 
   const handleOpenChart = useCallback((symbol: string) => {
     setCharts(prev => {
-      const newChartsState: Record<string, 'visible' | 'minimized'> = {};
-      // Minimize all other charts
-      for (const key in prev) {
-        if (key !== symbol) {
-            newChartsState[key] = 'minimized';
-        }
-      }
-      // Set the selected chart to visible
-      newChartsState[symbol] = 'visible';
-      return newChartsState;
+      // Mantener todos los charts existentes como están y agregar/mostrar el nuevo
+      return {
+        ...prev,
+        [symbol]: 'visible'
+      };
     });
   }, []);
   
