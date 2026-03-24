@@ -138,8 +138,8 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
 
   return (
     <div 
-      className={`fixed inset-0 z-[100] items-center justify-center bg-black/80 backdrop-blur-sm animate-modal-slide-up ${isVisible ? 'flex' : 'hidden'}`}
-      onClick={onMinimize}
+      className={`fixed inset-0 flex items-center justify-center transition-all duration-300 ${isVisible ? 'z-[100] bg-black/80 backdrop-blur-sm pointer-events-auto' : 'z-10 bg-transparent pointer-events-none opacity-0'}`}
+      onClick={isVisible ? onMinimize : undefined}
     >
       <style>{`
         @keyframes modal-slide-up {
@@ -152,7 +152,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
       `}</style>
 
       <div 
-        className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 border-rose-500/50 transition-all duration-300 ease-in-out ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'}`}
+        className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 border-rose-500/50 transition-all duration-300 ease-in-out ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'} ${isVisible ? 'animate-modal-slide-up' : ''}`}
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
         <div className="relative flex items-center justify-between px-4 py-2 border-b border-white/10 shrink-0">
