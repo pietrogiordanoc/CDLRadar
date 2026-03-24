@@ -20,6 +20,8 @@ const SessionMonitor: React.FC = () => {
     america: { name: 'AMERICA', status: 'closed' },
     advice: []
   });
+  const [hasUnreadAdvice, setHasUnreadAdvice] = useState(false);
+  const [lastAdviceHash, setLastAdviceHash] = useState('');
 
   const getSessionStatus = () => {
     const now = new Date();
@@ -134,11 +136,30 @@ const SessionMonitor: React.FC = () => {
   };
 
   useEffect(() => {
-    const update = () => setSessions(getSessionStatus());
+    const update = () => {
+      const newStatus = getSessionStatus();
+      setSessions(newStatus);
+      
+      // Detectar si los mensajes cambiaron
+      const newHash = newStatus.advice.join('|');
+      if (newHash !== lastAdviceHash && newHash !== '') {
+        setHasUnreadAdvice(true);
+        setLastAdviceHash(newHash);
+      }
+    };
+    
     update();
     const interval = setInterval(update, 60000); // Actualizar cada minuto
     return () => clearInterval(interval);
-  }, []);
+  }, [lastAdviceHash]);
+
+  const handleToggleExpand = () => {
+    setExpanded(!expanded);
+    // Marcar como leído cuando expande
+    if (!expanded && sessions.advice.length > 0) {
+      setHasUnreadAdvice(false);
+    }
+  };
 
   const SessionBadge = ({ session }: { session: SessionInfo }) => (
     <div className="flex items-center gap-2">
@@ -178,15 +199,15 @@ const SessionMonitor: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {sessions.advice.length > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg">
+            {sessions.advice.length > 0 && hasUnreadAdvice && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg animate-pulse">
                 <span className="text-xs font-bold text-amber-300">
                   {sessions.advice.length} {sessions.advice.length === 1 ? 'aviso' : 'avisos'}
                 </span>
               </div>
             )}
             <button
-              onClick={() => setExpanded(!expanded)}
+              onClick={handleToggleExpand}
               className="p-1.5 text-white/60 hover:text-white transition-colors"
               title={expanded ? "Colapsar" : "Ver detalles"}
             >
