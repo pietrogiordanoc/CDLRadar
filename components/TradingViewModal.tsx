@@ -138,7 +138,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
 
   return (
     <div 
-      className={`fixed inset-0 flex items-center justify-center transition-all duration-300 ${isVisible ? 'z-[100] bg-black/80 backdrop-blur-sm pointer-events-auto' : 'z-10 bg-transparent pointer-events-none opacity-0'}`}
+      className={`fixed inset-0 flex items-center justify-center transition-all duration-300 ${isVisible ? 'z-[100] bg-black/80 backdrop-blur-sm pointer-events-auto' : 'z-10 bg-transparent pointer-events-none invisible'}`}
       onClick={isVisible ? onMinimize : undefined}
     >
       <style>{`
@@ -201,7 +201,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
           </div>
         </div>
         
-        <div className="w-full flex-grow relative" key={`chart-${instrument.symbol}`}>
+        <div className="w-full flex-grow relative">
           <div ref={containerRef} className="tradingview-widget-container" style={{ height: "100%", width: "100%" }}>
             <div className="tradingview-widget-container__widget" style={{ height: "100%", width: "100%" }}></div>
           </div>
