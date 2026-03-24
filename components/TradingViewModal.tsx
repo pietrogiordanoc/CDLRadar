@@ -138,6 +138,20 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
     
   }, [instrument.symbol]);
 
+  // Listener para minimizar con Escape
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onMinimize();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isVisible, onMinimize]);
+
   const thumbnailTop = 80 + (thumbnailIndex * 220);
   
   // Mantener siempre el mismo tamaño para evitar que TradingView reinicialice
