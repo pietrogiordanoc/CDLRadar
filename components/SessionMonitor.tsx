@@ -113,15 +113,15 @@ const SessionMonitor: React.FC = () => {
   }, []);
 
   const SessionBadge = ({ session }: { session: SessionInfo }) => (
-    <div className="flex items-center gap-1.5">
-      <div className={`w-1.5 h-1.5 rounded-full ${
-        session.status === 'open' ? 'bg-emerald-500' : 'bg-neutral-700'
+    <div className="flex items-center gap-2">
+      <div className={`w-2 h-2 rounded-full ${
+        session.status === 'open' ? 'bg-emerald-500' : 'bg-neutral-600'
       }`} />
-      <span className="text-[10px] font-mono font-bold text-neutral-400 tracking-wide">
+      <span className="text-xs font-bold text-white tracking-wider">
         {session.name}
       </span>
-      <span className={`text-[9px] font-mono ${
-        session.status === 'open' ? 'text-emerald-400' : 'text-neutral-600'
+      <span className={`text-xs font-mono font-bold ${
+        session.status === 'open' ? 'text-emerald-400' : 'text-neutral-500'
       }`}>
         {session.status === 'open' && session.timeLeft 
           ? session.timeLeft 
@@ -133,34 +133,37 @@ const SessionMonitor: React.FC = () => {
   );
 
   return (
-    <div className="max-w-[1500px] mx-auto px-8 mb-4">
-      <div className="bg-neutral-900/50 border border-neutral-800/50 rounded-lg overflow-hidden">
+    <div className="max-w-[1500px] mx-auto px-8 mb-6">
+      <div className="bg-gradient-to-r from-white/[0.08] to-white/[0.05] border-2 border-white/20 rounded-xl overflow-hidden shadow-lg">
         {/* Strip principal siempre visible */}
-        <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center justify-between px-6 py-3.5">
           <div className="flex items-center gap-6">
-            <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest">
-              SESSION
+            <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+              MARKET SESSIONS
             </span>
+            <div className="w-px h-6 bg-white/20" />
             <SessionBadge session={sessions.asia} />
+            <div className="w-px h-5 bg-white/10" />
             <SessionBadge session={sessions.europe} />
+            <div className="w-px h-5 bg-white/10" />
             <SessionBadge session={sessions.america} />
           </div>
 
           <div className="flex items-center gap-3">
             {sessions.advice.length > 0 && (
-              <div className="flex items-center gap-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded">
-                <span className="text-[9px] font-mono text-amber-400">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg">
+                <span className="text-xs font-bold text-amber-300">
                   {sessions.advice.length} {sessions.advice.length === 1 ? 'aviso' : 'avisos'}
                 </span>
               </div>
             )}
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-1 text-neutral-600 hover:text-neutral-400 transition-colors"
+              className="p-1.5 text-white/60 hover:text-white transition-colors"
               title={expanded ? "Colapsar" : "Ver detalles"}
             >
               <svg 
-                className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} 
+                className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -174,11 +177,11 @@ const SessionMonitor: React.FC = () => {
 
         {/* Panel expandido con consejos */}
         {expanded && sessions.advice.length > 0 && (
-          <div className="border-t border-neutral-800/50 px-4 py-3 bg-neutral-900/30">
-            <div className="flex flex-col gap-2">
+          <div className="border-t border-white/20 px-6 py-4 bg-black/20">
+            <div className="flex flex-col gap-2.5">
               {sessions.advice.map((msg, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-[10px] font-mono text-neutral-400">
-                  <span className="text-cyan-500 mt-0.5">•</span>
+                <div key={idx} className="flex items-start gap-2.5 text-xs font-mono text-neutral-300">
+                  <span className="text-cyan-400 mt-0.5 text-sm">•</span>
                   <span>{msg}</span>
                 </div>
               ))}

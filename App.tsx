@@ -604,7 +604,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-[1500px] mx-auto px-8 mt-10">
+      <main className="max-w-[1500px] mx-auto px-8 mt-6">
         <SessionMonitor />
         
         <div className="grid grid-cols-1 gap-4">
