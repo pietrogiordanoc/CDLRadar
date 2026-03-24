@@ -196,12 +196,12 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
       <div 
         className={`relative bg-[#131722] overflow-hidden shadow-2xl flex flex-col border-2 transition-all duration-300 ease-in-out ${
           isVisible 
-            ? `border-rose-500/50 ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-full max-w-7xl h-[90vh] rounded-2xl'} animate-modal-slide-up`
+            ? `border-rose-500/50 ${isMaximized ? 'w-screen h-screen max-w-none rounded-none' : 'w-[95vw] max-w-[1400px] h-[85vh] rounded-2xl'} animate-modal-slide-up`
             : 'border-cyan-500/50 rounded-lg cursor-pointer hover:border-cyan-400'
         }`}
         style={{
-          width: isVisible ? (isMaximized ? '100vw' : '1600px') : `${thumbnailWidth}px`,
-          height: isVisible ? (isMaximized ? '100vh' : '900px') : `${thumbnailHeight}px`,
+          width: isVisible ? (isMaximized ? '100vw' : 'min(95vw, 1400px)') : `${thumbnailWidth}px`,
+          height: isVisible ? (isMaximized ? '100vh' : '85vh') : `${thumbnailHeight}px`,
           transform: isVisible ? 'scale(1)' : `scale(${scale})`,
           transformOrigin: 'top right',
         }}
