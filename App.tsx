@@ -7,6 +7,7 @@ import TimerDonut from './components/TimerDonut';
 import TradingViewModal from './components/TradingViewModal';
 import TendencialModal from './components/TendencialModal';
 import Radar from './components/Radar';
+import SessionMonitor from './components/SessionMonitor';
 import { audioService } from './utils/audioService';
 import { PriceStore } from './services/twelveDataService';
 
@@ -604,6 +605,8 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-[1500px] mx-auto px-8 mt-10">
+        <SessionMonitor />
+        
         <div className="grid grid-cols-1 gap-4">
           <div className="flex items-center justify-start gap-4 px-4 py-3 bg-white/[0.02] rounded-xl border border-white/5 mb-4 text-[10px] uppercase tracking-widest text-neutral-600">
             <div className="w-16 text-center shrink-0">Status</div>
