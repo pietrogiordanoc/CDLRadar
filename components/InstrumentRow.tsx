@@ -178,7 +178,7 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         let signalTriggerForUpdate = GlobalAnalysisCache[instrument.id]?.newSignalTriggerId;
 
         if (isNewEntry || isNewExit) {
-          playAlertSound(isNewEntry ? 'entry' : 'exit');
+          // Alarma se dispara en useEffect vinculado al badge NOW
           signalTriggerForUpdate = globalRefreshTrigger;
           setNewSignalTriggerId(signalTriggerForUpdate);
         }
@@ -221,6 +221,21 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
       }
     }
   }, [globalRefreshTrigger, instrument.id]);
+
+  // Disparar alarma cuando aparece el badge NOW
+  useEffect(() => {
+    if (newSignalTriggerId === globalRefreshTrigger) {
+      const action = GlobalAnalysisCache[instrument.id]?.lastAction;
+      console.log(`[Alarma] Badge NOW visible para ${instrument.symbol}, acción: ${action}`);
+      if (action === ActionType.ENTRAR_AHORA) {
+        console.log(`[Alarma] 🔔 Disparando alarma de ENTRADA para ${instrument.symbol}`);
+        playAlertSound('entry');
+      } else if (action === ActionType.SALIR) {
+        console.log(`[Alarma] 🔔 Disparando alarma de SALIDA para ${instrument.symbol}`);
+        playAlertSound('exit');
+      }
+    }
+  }, [newSignalTriggerId, globalRefreshTrigger, instrument.id, playAlertSound]);
 
   // Effect to run analysis on global refresh
   useEffect(() => { 
