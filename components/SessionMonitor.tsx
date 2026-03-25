@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import fundamentalsData from '../fundamentals.json';
 
 interface SessionInfo {
@@ -41,8 +41,8 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
   const [hasUnreadAdvice, setHasUnreadAdvice] = useState(false);
   const [lastAdviceHash, setLastAdviceHash] = useState('');
 
-  // Calcular próximo NFP (primer viernes del mes a 08:30 ET)
-  const getNextNFP = (): number => {
+  // Calcular próximo NFP (memoizado, solo recalcula al cambiar de mes)
+  const nextNFP = useMemo(() => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
@@ -57,7 +57,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
     firstFriday.setUTCHours(13, 30, 0, 0);
     
     // Si ya pasó, calcular el del próximo mes
-    if (firstFriday.getTime() < now.getTime()) {
+    if (firstFriday.getTime() < Date.now()) {
       const nextMonth = month + 1;
       firstFriday = new Date(year + Math.floor(nextMonth / 12), nextMonth % 12, 1);
       while (firstFriday.getDay() !== 5) {
@@ -67,19 +67,18 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
     }
     
     return firstFriday.getTime();
-  };
+  }, [new Date().getMonth()]); // Solo recalcula al cambiar de mes
 
-  // Parsear eventos manuales del JSON
-  const getUpcomingEvents = (): FundamentalEvent[] => {
+  // Parsear eventos manuales del JSON (memoizado)
+  const upcomingEvents = useMemo((): FundamentalEvent[] => {
     const now = Date.now();
     const events: FundamentalEvent[] = [];
     
     // Agregar NFP automático
-    const nfpTimestamp = getNextNFP();
     events.push({
       name: 'NFP',
       description: 'Non-Farm Payrolls (US Employment Report)',
-      timestamp: nfpTimestamp,
+      timestamp: nextNFP,
       impact: 'extreme'
     });
     
@@ -115,9 +114,9 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
     });
     
     return events.sort((a, b) => a.timestamp - b.timestamp);
-  };
+  }, [nextNFP]); // Solo recalcula cuando cambia el NFP
 
-  const getSessionStatus = () => {
+  const getSessionStatus = useCallback(() => {
     const now = new Date();
     const utcHour = now.getUTCHours();
     const utcMinute = now.getUTCMinutes();
@@ -207,7 +206,6 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
     }
 
     // 📅 ALERTAS DE FUNDAMENTALES
-    const upcomingEvents = getUpcomingEvents();
     const nowTimestamp = now.getTime();
     
     upcomingEvents.forEach(event => {
@@ -270,7 +268,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
       },
       advice
     };
-  };
+  }, [upcomingEvents]); // Dependencia: solo recalcula cuando cambian los eventos
 
   useEffect(() => {
     const update = () => {
@@ -358,7 +356,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
           <div className="flex items-center gap-3">
             {/* Badge de evento crítico (menos de 4h) */}
             {(() => {
-              const criticalEvent = getUpcomingEvents().find(e => {
+              const criticalEvent = upcomingEvents.find(e => {
                 const hoursUntil = (e.timestamp - Date.now()) / (1000 * 60 * 60);
                 return hoursUntil > -2 && hoursUntil <= 4;
               });
@@ -442,7 +440,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
                 📅 UPCOMING FUNDAMENTALS
               </div>
               <div className="flex flex-col gap-1.5">
-                {getUpcomingEvents().slice(0, 3).map((event, idx) => {
+                {upcomingEvents.slice(0, 3).map((event, idx) => {
                   const eventDate = new Date(event.timestamp);
                   const timeUntil = event.timestamp - Date.now();
                   const daysUntil = Math.floor(timeUntil / (1000 * 60 * 60 * 24));
