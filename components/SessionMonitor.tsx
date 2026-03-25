@@ -286,15 +286,15 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
     update();
     const interval = setInterval(update, 60000); // Actualizar cada minuto
     return () => clearInterval(interval);
-  }, [lastAdviceHash]);
+  }, [lastAdviceHash, getSessionStatus]);
 
-  const handleToggleExpand = () => {
-    setExpanded(!expanded);
+  const handleToggleExpand = useCallback(() => {
+    setExpanded(prev => !prev);
     // Marcar como leído cuando expande
     if (!expanded && sessions.advice.length > 0) {
       setHasUnreadAdvice(false);
     }
-  };
+  }, [expanded, sessions.advice.length]);
 
   const SessionBadge = ({ session }: { session: SessionInfo }) => (
     <div className="flex items-center gap-2">
