@@ -279,9 +279,13 @@ const App: React.FC = () => {
     if (audioReady) return; // Ya activado previamente
 
     const activateAudio = async () => {
+      // Asegurar que el contexto está inicializado
+      audioService.initialize();
       const ctx = audioService.getContext();
+      console.log('[AudioService] Estado del contexto:', ctx?.state);
       if (ctx && ctx.state === 'suspended') {
         await ctx.resume();
+        console.log('[AudioService] AudioContext resumed');
       }
       setAudioReady(true);
       localStorage.setItem('audioActivated', 'true');
@@ -599,6 +603,21 @@ const App: React.FC = () => {
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
                   className="w-16 h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                 />
+                <button 
+                  onClick={() => {
+                    console.log('[Audio Test] Estado audioReady:', audioReady);
+                    console.log('[Audio Test] Estado AudioContext:', audioService.getContext()?.state);
+                    audioService.play('entry');
+                  }}
+                  className="px-2 py-1 text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded transition-colors"
+                  title="Probar sonido de alerta"
+                >
+                  TEST
+                </button>
+                <div 
+                  className={`w-2 h-2 rounded-full ${audioReady ? 'bg-emerald-500' : 'bg-yellow-500'}`}
+                  title={audioReady ? 'Audio activado' : 'Haz click para activar audio'}
+                ></div>
               </div>
             </div>
             <div className={`p-1 relative ${showDebugFrames ? 'border-2 border-pink-500' : ''}`}>
