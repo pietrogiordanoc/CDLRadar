@@ -332,23 +332,46 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
             <div className="w-px h-5 bg-white/10" />
             <SessionBadge session={sessions.america} />
             
-            {/* Market Quietness Indicator */}
-            {marketStats && marketStats.quietPercentage >= 70 && (
+            {/* Market Activity Indicators - Amplified */}
+            {marketStats && (
               <>
                 <div className="w-px h-5 bg-white/10" />
-                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
-                  </svg>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-blue-300 leading-tight">
-                      Mercado Pasivo
-                    </span>
-                    <span className="text-[8px] text-blue-400/70 leading-tight">
-                      {marketStats.waiting} de {marketStats.totalConnected} esperando señal
-                    </span>
+                
+                {/* Mercado Pasivo (≥70% esperando) */}
+                {marketStats.quietPercentage >= 70 ? (
+                  <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-blue-500/15 to-blue-600/10 border-2 border-blue-500/30 rounded-xl shadow-lg">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 border border-blue-400/30">
+                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-black text-blue-300 leading-tight uppercase tracking-wider">
+                        Mercado Pasivo
+                      </span>
+                      <span className="text-[10px] text-blue-400/80 leading-tight font-medium">
+                        {marketStats.waiting} de {marketStats.totalConnected} esperando señal
+                      </span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Mercado Activo (<70% esperando, hay movimiento) */
+                  <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-emerald-500/15 to-green-600/10 border-2 border-emerald-500/40 rounded-xl shadow-lg animate-pulse">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/30">
+                      <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-black text-emerald-300 leading-tight uppercase tracking-wider">
+                        Mercado Activo
+                      </span>
+                      <span className="text-[10px] text-emerald-400/80 leading-tight font-medium">
+                        {marketStats.entering + marketStats.exiting} oportunidades detectadas
+                      </span>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
