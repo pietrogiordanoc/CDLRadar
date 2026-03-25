@@ -21,14 +21,24 @@ const initializeAudioContext = (): AudioContext | null => {
 };
 
 // Function to play sounds, ensuring context is initialized
-const playSound = (type: 'entry' | 'exit') => {
+const playSound = async (type: 'entry' | 'exit') => {
   // Attempt to initialize if not already
   const ctx = initializeAudioContext();
-  if (!ctx) return;
+  if (!ctx) {
+    console.warn('[AudioService] No se pudo inicializar AudioContext');
+    return;
+  }
   
   // If context is suspended, it needs a user gesture to resume
   if (ctx.state === 'suspended') {
-    ctx.resume();
+    console.log('[AudioService] AudioContext suspendido, intentando reanudar...');
+    try {
+      await ctx.resume();
+      console.log('[AudioService] AudioContext reanudado exitosamente');
+    } catch (error) {
+      console.error('[AudioService] No se pudo reanudar AudioContext:', error);
+      return;
+    }
   }
 
   const oscillator = ctx.createOscillator();

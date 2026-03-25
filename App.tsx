@@ -306,6 +306,31 @@ const App: React.FC = () => {
     };
   }, [audioReady]);
 
+  // Reanudar AudioContext cuando la página vuelve a estar visible (al cambiar de escritorio/pestaña)
+  useEffect(() => {
+    if (!audioReady) return; // Solo si ya fue activado
+
+    const handleVisibilityChange = async () => {
+      if (!document.hidden) {
+        const ctx = audioService.getContext();
+        if (ctx && ctx.state === 'suspended') {
+          try {
+            await ctx.resume();
+            console.log('[AudioService] AudioContext reanudado al volver a la pestaña');
+          } catch (error) {
+            console.error('[AudioService] Error al reanudar:', error);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [audioReady]);
+
   const handleRefreshComplete = useCallback(() => {
     setRefreshTrigger(t => t + 1);
     setRefreshJustCompleted(true);
