@@ -164,7 +164,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
       className="fixed transition-all duration-300"
       style={{
         zIndex: isVisible ? 100 : 50,
-        pointerEvents: 'auto',
+        pointerEvents: isVisible ? 'auto' : 'none', // Sin interacción cuando minimizado
         ...(isVisible ? {
           inset: 0,
           display: 'flex',
@@ -204,6 +204,7 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
           height: isVisible ? (isMaximized ? '100vh' : '85vh') : `${thumbnailHeight}px`,
           transform: isVisible ? 'scale(1)' : `scale(${scale})`,
           transformOrigin: 'top right',
+          pointerEvents: 'auto', // El thumbnail interior sí puede recibir clicks
         }}
         onClick={(e) => {
           e.stopPropagation();
