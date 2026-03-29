@@ -71,6 +71,57 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            
+            /* Hide desktop-only elements on mobile */
+            .desktop-only {
+                display: none !important;
+            }
+            
+            /* Adjust container padding on mobile */
+            .mobile-px-4 {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            
+            /* Mobile header adjustments */
+            .mobile-header-stack {
+                flex-direction: column !important;
+                gap: 1rem !important;
+            }
+            
+            /* Mobile button groups */
+            .mobile-overflow-scroll {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Hide scrollbars on mobile */
+            .mobile-overflow-scroll::-webkit-scrollbar {
+                display: none;
+            }
+            
+            /* Mobile card layout */
+            .mobile-card {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+                padding: 1rem !important;
+            }
+            
+            /* Mobile text sizes */
+            .mobile-text-xs {
+                font-size: 0.625rem !important;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.75rem !important;
+            }
+        }
     </style>
 <script type="importmap">
 {

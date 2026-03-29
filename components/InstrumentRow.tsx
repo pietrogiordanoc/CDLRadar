@@ -394,10 +394,12 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
   };
 
   return (
-    <div className={`flex items-center justify-start gap-4 p-3 px-4 rounded-xl border transition-colors duration-200
-      ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
-      hover:bg-white/[0.04] hover:border-white/10
-      ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}`}>
+    <>
+      {/* Desktop Layout */}
+      <div className={`hidden md:flex items-center justify-start gap-4 p-3 px-4 rounded-xl border transition-colors duration-200
+        ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
+        hover:bg-white/[0.04] hover:border-white/10
+        ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}`}>
       
       <style jsx>{`
         @keyframes pulse-slow {
@@ -576,6 +578,137 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         </button>
       </div>
     </div>
+
+    {/* Mobile Layout - Card Style */}
+    <div className={`md:hidden flex flex-col gap-3 p-3 rounded-lg border transition-colors duration-200
+      ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
+      ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}`}>
+      
+      {/* Row 1: Symbol, Status, Bookmark */}
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-white text-sm tracking-tight">{instrument.symbol}</span>
+            {newSignalTriggerId === globalRefreshTrigger && (
+              <span className="px-1.5 py-0.5 rounded text-[7px] uppercase tracking-widest bg-cyan-500/15 text-cyan-400 border border-cyan-500/25">
+                NOW
+              </span>
+            )}
+            <div className="h-4 w-7 rounded-full transition-all duration-200 flex items-center p-0.5 bg-neutral-900 border border-neutral-800 ml-auto">
+              <div className={`h-3 w-3 rounded-full transition-all duration-300 ${isLoading ? 'bg-neutral-600 translate-x-0' : (!marketOpen ? 'bg-neutral-700 translate-x-0' : 'bg-emerald-500 translate-x-3')}`} />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[9px] text-neutral-500 font-medium">{instrument.name}</span>
+            <span className="text-[8px] text-neutral-700 uppercase">{instrument.type}</span>
+          </div>
+        </div>
+        <button onClick={toggleBookmark} className={`p-1 rounded transition-colors ${isBookmarked ? 'text-neutral-300' : 'text-neutral-800'}`}>
+          <Bookmark className="w-3.5 h-3.5" fill={isBookmarked ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+
+      {/* Row 2: Price, Score, Chart */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {currentPrice > 0 && <span className="text-xs font-mono text-neutral-300">${currentPrice.toLocaleString()}</span>}
+          <div className="flex flex-col items-center">
+            <span className={`text-sm font-mono ${getScoreColor(analysis?.powerScore || 0)}`}>
+              {isLoading ? '--' : `${analysis?.powerScore || 0}`}
+            </span>
+            <span className="text-[7px] text-neutral-700 uppercase">Score</span>
+          </div>
+        </div>
+        <button onClick={() => onOpenChart(instrument.symbol)} className={`p-1 rounded border transition-colors ${getChartButtonClass()}`}>
+          <ChartMonitorIcon className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Row 3: Action Button (full width) */}
+      {isLoading && !activeTrade ? (
+        <div className="w-full px-3 py-2 rounded border border-neutral-800 text-[9px] text-neutral-600 text-center">
+          Escaneando...
+        </div>
+      ) : (
+        <button
+          onClick={isHighSignal && !activeTrade ? () => handleTakeTrade(analysis.mainSignal === SignalType.SALE ? 'sell' : 'buy') : undefined}
+          disabled={!!activeTrade}
+          className={`w-full px-3 py-2 rounded border text-[10px] uppercase tracking-wider text-center transition-colors duration-150
+          ${getActionColor(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
+          ${activeTrade ? 'opacity-30 cursor-not-allowed' : ''}
+          `}
+        >
+          {getActionText(analysis?.action, analysis?.powerScore, analysis?.mainSignal)}
+        </button>
+      )}
+
+      {/* Row 4: Trade Setup (if available) */}
+      {tradeSetup && isHighSignal && (
+        <button
+          onClick={() => handleCopyTradeSetup(tradeSetup)}
+          className="flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded px-3 py-2 text-[10px] font-mono w-full text-left"
+        >
+          {copyStatus ? (
+            <span className="text-neutral-300 text-center w-full">Copiado</span>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <div>
+                  <span className="text-neutral-600">E: </span>
+                  <span className="text-neutral-200">{tradeSetup.entry.toFixed(4)}</span>
+                </div>
+                <div>
+                  <span className="text-neutral-600">TP: </span>
+                  <span className="text-neutral-200">{tradeSetup.tp.toFixed(4)}</span>
+                </div>
+              </div>
+              {profitInfo && (
+                <div className="flex flex-col items-center">
+                  <span className={`text-sm font-mono ${getRRColor(tradeSetup.rr || 0)}`}>
+                    {profitInfo.value}
+                  </span>
+                  <span className="text-[7px] text-neutral-600">{profitInfo.unit}</span>
+                </div>
+              )}
+            </>
+          )}
+        </button>
+      )}
+
+      {/* Row 5: Active Trade P&L */}
+      {activeTrade && (
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex items-center justify-between">
+            <div className={`flex items-center text-sm font-mono px-2 py-1 rounded border ${pl.color}`}>
+              <span>{pl.prefix}{pl.value.toFixed(2)}%</span>
+            </div>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseTrade();
+              }} 
+              className="px-2 py-1 rounded text-xs bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+            >
+              Cerrar
+            </button>
+          </div>
+          {tpProgress && (
+            <div className="w-full flex items-center gap-2">
+              <div className="flex-grow h-1 bg-neutral-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${tpProgress.barColor} transition-all duration-500`}
+                  style={{ width: `${tpProgress.progress}%` }}
+                />
+              </div>
+              <span className="text-[9px] text-neutral-600 font-mono">
+                {tpProgress.rawProgress >= 0 ? Math.round(tpProgress.progress) : 0}%
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+    </>
   );
 };
 

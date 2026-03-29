@@ -501,12 +501,12 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className={`sticky top-0 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-8 py-5 ${showDemoScreener ? 'z-[250]' : hasVisibleChart ? 'z-50' : 'z-[150]'}`}>
-        <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className={`flex items-center space-x-4 p-2 relative ${showDebugFrames ? 'border-2 border-red-500' : ''}`}>
+      <header className={`sticky top-0 bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 px-4 md:px-8 py-3 md:py-5 ${showDemoScreener ? 'z-[250]' : hasVisibleChart ? 'z-50' : 'z-[150]'}`}>
+        <div className="max-w-[1500px] mx-auto flex flex-col items-start md:items-center md:flex-row justify-between gap-3 md:gap-6">
+          <div className={`flex items-center space-x-3 md:space-x-4 p-1 md:p-2 relative ${showDebugFrames ? 'border-2 border-red-500' : ''}`}>
             {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-2 text-xs text-red-500 z-50">HEADER-1: LOGO</span>}
             <div 
-              className="relative w-14 h-14 cursor-pointer group"
+              className="relative w-10 h-10 md:w-14 md:h-14 cursor-pointer group"
               onClick={() => setIsRadarVisible(true)}
             >
               <div className="absolute inset-0 bg-emerald-500/10 rounded-full border-2 border-emerald-500/20 group-hover:border-emerald-500/50 transition-colors"></div>
@@ -525,37 +525,38 @@ const App: React.FC = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-white uppercase">CDLRadar V5.8</h1>
+              <h1 className="text-lg md:text-2xl font-black tracking-tighter text-white uppercase">CDLRadar V5.8</h1>
               <div className="flex items-center space-x-2">
-                <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Live Market Scanner</span>
+                <span className="h-1.5 w-1.5 md:h-2 md:w-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-neutral-500">Live Market Scanner</span>
               </div>
             </div>
           </div>
 
-          <div className={`flex items-center space-x-6 p-2 relative ${showDebugFrames ? 'border-2 border-green-500' : ''}`}>
+          <div className={`flex flex-wrap items-center gap-2 md:space-x-6 md:gap-0 p-1 md:p-2 relative w-full md:w-auto ${showDebugFrames ? 'border-2 border-green-500' : ''}`}>
             {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-2 text-xs text-green-500 z-50">HEADER-3: CONTROLS</span>}
             {/* Paper Money Demo */}
             {!demoAccount.enabled ? (
-              <div className="flex items-center gap-2 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-xl px-3 py-2 relative">
+              <div className="flex items-center gap-1.5 md:gap-2 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-lg md:rounded-xl px-2 md:px-3 py-1.5 md:py-2 relative text-xs md:text-sm">
                 {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-1 text-[9px] text-purple-400 z-50">H3A-PaperMoney</span>}
-                <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">Paper Money</span>
+                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-cyan-400 hidden md:inline">Paper Money</span>
+                <span className="text-[8px] font-black uppercase tracking-widest text-cyan-400 md:hidden">Demo</span>
                 <input
                   type="text"
                   value={demoBalanceInput}
                   onChange={(e) => setDemoBalanceInput(e.target.value)}
                   placeholder="10000"
-                  className="w-24 bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
+                  className="w-16 md:w-24 bg-black/30 border border-white/10 rounded px-1.5 md:px-2 py-0.5 md:py-1 text-xs md:text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
                 />
                 <input
                   type="text"
                   value={demoRiskInput}
                   onChange={(e) => setDemoRiskInput(e.target.value)}
                   placeholder="2"
-                  className="w-12 bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
+                  className="w-8 md:w-12 bg-black/30 border border-white/10 rounded px-1 md:px-2 py-0.5 md:py-1 text-xs md:text-sm text-white font-normal focus:outline-none focus:border-cyan-500/50"
                   title="Riesgo % por trade"
                 />
-                <span className="text-[8px] text-neutral-500">%</span>
+                <span className="text-[7px] md:text-[8px] text-neutral-500">%</span>
                 <button
                   onClick={handleActivateDemo}
                   className="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-400 text-[9px] font-black uppercase tracking-widest border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
@@ -564,15 +565,15 @@ const App: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-xl px-3 py-2 relative">
+              <div className="flex items-center gap-2 md:gap-3 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-lg md:rounded-xl px-2 md:px-3 py-1.5 md:py-2 relative text-xs md:text-sm">
                 {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-1 text-[9px] text-purple-400 z-50">H3A-PaperMoney</span>}
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-normal text-white">
+                  <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-neutral-500">Paper Balance</span>
+                  <div className="flex items-baseline gap-1 md:gap-2">
+                    <span className="text-sm md:text-lg font-normal text-white">
                       ${formatNumber(demoStats.currentEquity, 2)}
                     </span>
-                    <span className={`text-xs font-bold ${
+                    <span className={`text-[10px] md:text-xs font-bold ${
                       demoStats.totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'
                     }`}>
                       {demoStats.totalPL >= 0 ? '+' : ''}{demoStats.plPercentage.toFixed(1)}%
@@ -580,7 +581,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
                 {demoStats.totalTrades > 0 && (
-                  <div className="flex flex-col border-l border-white/10 pl-3">
+                  <div className="hidden md:flex flex-col border-l border-white/10 pl-3">
                     <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Stats</span>
                     <div className="flex items-center gap-2 text-[9px]">
                       <span className="text-emerald-400">{demoStats.wins}W</span>
@@ -591,7 +592,7 @@ const App: React.FC = () => {
                 )}
                 <button
                   onClick={resetDemoAccount}
-                  className="text-[8px] px-2 py-1 rounded bg-neutral-800/50 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors font-bold uppercase tracking-wider"
+                  className="text-[7px] md:text-[8px] px-1.5 md:px-2 py-0.5 md:py-1 rounded bg-neutral-800/50 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors font-bold uppercase tracking-wider"
                   title="Reset paper account"
                 >
                   Reset
@@ -599,7 +600,7 @@ const App: React.FC = () => {
               </div>
             )}
             
-            <div className="flex items-center space-x-4 bg-white/5 p-2 px-3 rounded-xl border border-white/10 relative">
+            <div className="hidden md:flex items-center space-x-4 bg-white/5 p-2 px-3 rounded-xl border border-white/10 relative">
               {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-1 text-[9px] text-orange-400 z-50">H3B-Audio</span>}
               <div className="flex items-center gap-2">
                 <button 
@@ -658,28 +659,29 @@ const App: React.FC = () => {
         </div>
         
         {/* HEADER-4: FILTERS + MENU ROW */}
-        <div className={`max-w-[1500px] mx-auto px-8 py-2 relative ${showDebugFrames ? 'border-2 border-purple-500' : ''}`}>
-          {showDebugFrames && <span className="absolute -top-3 left-8 bg-[#050505] px-2 text-xs text-purple-500 z-50">HEADER-4: FILTERS+MENU</span>}
-          <div className="flex items-center justify-start gap-4">
+        <div className={`max-w-[1500px] mx-auto px-4 md:px-8 py-2 relative ${showDebugFrames ? 'border-2 border-purple-500' : ''}`}>
+          {showDebugFrames && <span className="absolute -top-3 left-4 md:left-8 bg-[#050505] px-2 text-xs text-purple-500 z-50">HEADER-4: FILTERS+MENU</span>}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-start gap-3 md:gap-4">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-start gap-3 md:gap-4">
             {/* Search */}
             <input 
               type="text" 
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500/50 w-[280px] transition-all"
+              className="bg-white/5 border border-white/10 rounded-lg md:rounded-xl px-3 md:px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500/50 w-full md:w-[280px] transition-all"
             />
             
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/10"></div>
+            {/* Separator - Hidden on mobile */}
+            <div className="hidden md:block h-6 w-px bg-white/10"></div>
             
             {/* Filters */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
               {(['all', 'forex', 'indices', 'stocks', 'commodities', 'crypto'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all duration-300 border
+                  className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all duration-300 border whitespace-nowrap flex-shrink-0
                     ${filter === f 
                       ? 'bg-emerald-500 border-emerald-400 text-black' 
                       : 'bg-white/5 border-white/5 text-neutral-500 hover:text-white hover:bg-white/10'}`}
@@ -689,24 +691,24 @@ const App: React.FC = () => {
               ))}
             </div>
             
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/10"></div>
+            {/* Separator - Hidden on mobile */}
+            <div className="hidden md:block h-6 w-px bg-white/10"></div>
             
-            {/* Menu Buttons */}
-            <div className="flex items-center gap-3">
+            {/* Menu Buttons - Hidden on mobile */}
+            <div className="hidden md:flex items-center gap-3">
               <button onClick={() => setIsTendencialModalVisible(true)} className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest">Tendencial</button>
               <button className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest">Fundamentales</button>
               <button className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest">Calendario</button>
               <button className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest">Mercado Cripto</button>
             </div>
             
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/10"></div>
+            {/* Separator - Hidden on mobile */}
+            <div className="hidden md:block h-6 w-px bg-white/10"></div>
             
             {/* History Toggle Button */}
             <button
               onClick={() => setShowDemoScreener(!showDemoScreener)}
-              className="text-[10px] px-2 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40 transition-colors font-bold uppercase tracking-wider"
+              className="text-[9px] md:text-[10px] px-2 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40 transition-colors font-bold uppercase tracking-wider"
             >
               {showDemoScreener ? 'Close History' : 'History'}
             </button>
@@ -714,11 +716,12 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-[1500px] mx-auto px-8 mt-6">
+      <main className="max-w-[1500px] mx-auto px-4 md:px-8 mt-4 md:mt-6">
         <SessionMonitor marketStats={marketQuietnessStats} />
         
-        <div className="grid grid-cols-1 gap-4">
-          <div className="flex items-center justify-start gap-4 px-4 py-3 bg-white/[0.02] rounded-xl border border-white/5 mb-4 text-[10px] uppercase tracking-widest text-neutral-600">
+        <div className="grid grid-cols-1 gap-3 md:gap-4">
+          {/* Desktop table header - Hidden on mobile */}
+          <div className="hidden md:flex items-center justify-start gap-4 px-4 py-3 bg-white/[0.02] rounded-xl border border-white/5 mb-4 text-[10px] uppercase tracking-widest text-neutral-600">
             <div className="w-16 text-center shrink-0">Status</div>
             <div className="w-[190px] shrink-0 cursor-pointer hover:text-white transition-colors" onClick={() => requestSort('symbol')}>Instrument</div>
             <div className="w-[44px] shrink-0 text-center">Chart</div>

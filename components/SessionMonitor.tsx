@@ -297,14 +297,14 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
   }, [expanded, sessions.advice.length]);
 
   const SessionBadge = ({ session }: { session: SessionInfo }) => (
-    <div className="flex items-center gap-2">
-      <div className={`w-2 h-2 rounded-full ${
+    <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${
         session.status === 'open' ? 'bg-emerald-500' : 'bg-neutral-600'
       }`} />
-      <span className="text-xs font-bold text-white tracking-wider">
+      <span className="text-[10px] md:text-xs font-bold text-white tracking-wider">
         {session.name}
       </span>
-      <span className={`text-xs font-mono font-bold ${
+      <span className={`text-[9px] md:text-xs font-mono font-bold ${
         session.status === 'open' ? 'text-emerald-400' : 'text-neutral-500'
       }`}>
         {session.status === 'open' && session.timeLeft 
@@ -317,29 +317,30 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
   );
 
   return (
-    <div className="max-w-[1500px] mx-auto px-8 mb-6">
-      <div className="bg-gradient-to-r from-white/[0.08] to-white/[0.05] border-2 border-white/20 rounded-xl overflow-hidden shadow-lg">
+    <div className="max-w-[1500px] mx-auto px-4 md:px-8 mb-4 md:mb-6">
+      <div className="bg-gradient-to-r from-white/[0.08] to-white/[0.05] border border-white/20 md:border-2 rounded-lg md:rounded-xl overflow-hidden shadow-lg">
         {/* Strip principal siempre visible */}
-        <div className="flex items-center justify-between px-6 py-3.5">
-          <div className="flex items-center gap-6">
-            <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
-              MARKET SESSIONS
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-3 md:px-6 py-2 md:py-3.5 gap-3 md:gap-0">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-3 md:px-6 py-2 md:py-3.5 gap-3 md:gap-0">
+          <div className="flex items-center gap-3 md:gap-6 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+            <span className="text-[8px] md:text-[10px] font-black text-white/60 uppercase tracking-widest flex-shrink-0">
+              SESSIONS
             </span>
-            <div className="w-px h-6 bg-white/20" />
+            <div className="w-px h-4 md:h-6 bg-white/20" />
             <SessionBadge session={sessions.asia} />
-            <div className="w-px h-5 bg-white/10" />
+            <div className="w-px h-4 md:h-5 bg-white/10" />
             <SessionBadge session={sessions.europe} />
-            <div className="w-px h-5 bg-white/10" />
+            <div className="w-px h-4 md:h-5 bg-white/10" />
             <SessionBadge session={sessions.america} />
             
-            {/* Market Activity Indicators - Amplified */}
+            {/* Market Activity Indicators - Amplified, hidden on mobile */}
             {marketStats && (
               <>
-                <div className="w-px h-5 bg-white/10" />
+                <div className="hidden md:block w-px h-5 bg-white/10" />
                 
                 {/* Mercado Pasivo (≥70% esperando) */}
                 {marketStats.quietPercentage >= 70 ? (
-                  <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-blue-500/15 to-blue-600/10 border-2 border-blue-500/30 rounded-xl shadow-lg">
+                  <div className="hidden md:flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-blue-500/15 to-blue-600/10 border-2 border-blue-500/30 rounded-xl shadow-lg">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 border border-blue-400/30">
                       <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" />
@@ -356,7 +357,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
                   </div>
                 ) : (
                   /* Mercado Activo (<70% esperando, hay movimiento) */
-                  <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-emerald-500/15 to-green-600/10 border-2 border-emerald-500/40 rounded-xl shadow-lg animate-pulse">
+                  <div className="hidden md:flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-emerald-500/15 to-green-600/10 border-2 border-emerald-500/40 rounded-xl shadow-lg animate-pulse">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/30">
                       <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -376,7 +377,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {/* Badge de evento crítico (menos de 4h) */}
             {(() => {
               const criticalEvent = upcomingEvents.find(e => {
@@ -389,12 +390,12 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
                 const isActive = hoursUntil < 0.5 && hoursUntil > -2;
                 
                 return (
-                  <div className={`flex items-center gap-2 px-3 py-1.5 ${
+                  <div className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 ${
                     isActive 
                       ? 'bg-rose-500/30 border-rose-500/50' 
                       : 'bg-orange-500/20 border-orange-500/30'
                   } border rounded-lg ${isActive ? 'animate-pulse' : ''}`}>
-                    <span className="text-xs font-black text-white">
+                    <span className="text-[10px] md:text-xs font-black text-white">
                       {isActive ? '🔴' : '🟠'} {criticalEvent.name}
                     </span>
                   </div>
@@ -404,19 +405,19 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
             })()}
             
             {sessions.advice.length > 0 && hasUnreadAdvice && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg animate-pulse">
-                <span className="text-xs font-bold text-amber-300">
+              <div className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg animate-pulse">
+                <span className="text-[10px] md:text-xs font-bold text-amber-300">
                   {sessions.advice.length} {sessions.advice.length === 1 ? 'aviso' : 'avisos'}
                 </span>
               </div>
             )}
             <button
               onClick={handleToggleExpand}
-              className="p-1.5 text-white/60 hover:text-white transition-colors"
+              className="p-1 md:p-1.5 text-white/60 hover:text-white transition-colors"
               title={expanded ? "Colapsar" : "Ver detalles"}
             >
               <svg 
-                className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} 
+                className={`w-3.5 md:w-4 h-3.5 md:h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -432,8 +433,8 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
         {expanded && sessions.advice.length > 0 && (
           <div className="border-t border-white/20 bg-black/20">
             {/* Header con botón cerrar */}
-            <div className="px-6 py-2 flex items-center justify-between border-b border-white/5">
-              <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">
+            <div className="px-3 md:px-6 py-2 flex items-center justify-between border-b border-white/5">
+              <span className="text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest">
                 MARKET ADVICE
               </span>
               <button
@@ -448,18 +449,19 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
             </div>
             
             {/* Consejos */}
-            <div className="px-6 py-4 flex flex-col gap-2.5">
+            <div className="px-3 md:px-6 py-3 md:py-4 flex flex-col gap-2 md:gap-2.5 max-h-[300px] md:max-h-none overflow-y-auto">
               {sessions.advice.map((msg, idx) => (
-                <div key={idx} className="flex items-start gap-2.5 text-xs font-mono text-neutral-300">
-                  <span className="text-cyan-400 mt-0.5 text-sm">•</span>
+                <div key={idx} className="flex items-start gap-2 md:gap-2.5 text-[11px] md:text-xs font-mono text-neutral-300">
+                  <span className="text-cyan-400 mt-0.5 text-xs md:text-sm flex-shrink-0">•</span>
                   <span>{msg}</span>
                 </div>
               ))}
             </div>
 
-            {/* Eventos fundamentales próximos */}
-            <div className="border-t border-white/10 px-6 py-3 bg-black/10">
-              <div className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">
+            {/* Eventos fundamentales próximos - Hidden on small mobile */}
+            <div className="hidden sm:block border-t border-white/10 px-3 md:px-6 py-2 md:py-3 bg-black/10">
+            <div className="hidden sm:block border-t border-white/10 px-3 md:px-6 py-2 md:py-3 bg-black/10">
+              <div className="text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">
                 📅 UPCOMING FUNDAMENTALS
               </div>
               <div className="flex flex-col gap-1.5">
@@ -481,7 +483,7 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
                     : `en ${hoursUntil}h`;
                   
                   return (
-                    <div key={idx} className="flex items-center justify-between text-[11px] px-2 py-1.5 bg-white/[0.03] rounded border border-white/5">
+                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-[10px] md:text-[11px] px-2 py-1.5 bg-white/[0.03] rounded border border-white/5 gap-1 sm:gap-0">
                       <div className="flex items-center gap-2">
                         <span className={`font-black ${event.impact === 'extreme' ? 'text-rose-400' : 'text-orange-400'}`}>
                           {event.name}
