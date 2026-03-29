@@ -701,16 +701,20 @@ const App: React.FC = () => {
               <button className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors uppercase tracking-widest">Mercado Cripto</button>
             </div>
             
-            {/* Separator - Hidden on mobile */}
-            <div className="hidden md:block h-6 w-px bg-white/10"></div>
-            
-            {/* History Toggle Button */}
-            <button
-              onClick={() => setShowDemoScreener(!showDemoScreener)}
-              className="text-[9px] md:text-[10px] px-2 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40 transition-colors font-bold uppercase tracking-wider"
-            >
-              {showDemoScreener ? 'Close History' : 'History'}
-            </button>
+            {/* History Toggle Button - Only visible when demo account is active */}
+            {demoAccount.enabled && (
+              <>
+                {/* Separator - Hidden on mobile */}
+                <div className="hidden md:block h-6 w-px bg-white/10"></div>
+                
+                <button
+                  onClick={() => setShowDemoScreener(!showDemoScreener)}
+                  className="text-[9px] md:text-[10px] px-2 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40 transition-colors font-bold uppercase tracking-wider"
+                >
+                  {showDemoScreener ? 'Close History' : 'History'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
