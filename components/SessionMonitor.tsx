@@ -321,7 +321,6 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
       <div className="bg-gradient-to-r from-white/[0.08] to-white/[0.05] border border-white/20 md:border-2 rounded-lg md:rounded-xl overflow-hidden shadow-lg">
         {/* Strip principal siempre visible */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-3 md:px-6 py-2 md:py-3.5 gap-3 md:gap-0">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-3 md:px-6 py-2 md:py-3.5 gap-3 md:gap-0">
           <div className="flex items-center gap-3 md:gap-6 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
             <span className="text-[8px] md:text-[10px] font-black text-white/60 uppercase tracking-widest flex-shrink-0">
               SESSIONS
@@ -459,7 +458,6 @@ const SessionMonitor: React.FC<SessionMonitorProps> = ({ marketStats }) => {
             </div>
 
             {/* Eventos fundamentales próximos - Hidden on small mobile */}
-            <div className="hidden sm:block border-t border-white/10 px-3 md:px-6 py-2 md:py-3 bg-black/10">
             <div className="hidden sm:block border-t border-white/10 px-3 md:px-6 py-2 md:py-3 bg-black/10">
               <div className="text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">
                 📅 UPCOMING FUNDAMENTALS

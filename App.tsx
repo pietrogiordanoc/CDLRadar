@@ -662,7 +662,6 @@ const App: React.FC = () => {
         <div className={`max-w-[1500px] mx-auto px-4 md:px-8 py-2 relative ${showDebugFrames ? 'border-2 border-purple-500' : ''}`}>
           {showDebugFrames && <span className="absolute -top-3 left-4 md:left-8 bg-[#050505] px-2 text-xs text-purple-500 z-50">HEADER-4: FILTERS+MENU</span>}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-start gap-3 md:gap-4">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-start gap-3 md:gap-4">
             {/* Search */}
             <input 
               type="text" 
