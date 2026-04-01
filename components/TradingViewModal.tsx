@@ -224,17 +224,6 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
             )}
           </div>
 
-          {tradeSetup && isVisible && (
-            <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 text-cyan-300">
-              <div className="flex items-center gap-4 text-sm font-mono">
-                <span>E: {formatSetupValue(tradeSetup.entry)}</span>
-                <span>TP: {formatSetupValue(tradeSetup.tp)}</span>
-                <span>Δ: {formatSetupValue(Math.abs(tradeSetup.tp - tradeSetup.entry))}</span>
-                {mainSignal && <span>{mainSignal === SignalType.SALE ? 'SELL' : 'BUY'}</span>}
-              </div>
-            </div>
-          )}
-          
           <div className="flex items-center space-x-2">
             {isVisible && (
               <>
@@ -265,6 +254,23 @@ const TradingViewModal: React.FC<TradingViewModalProps> = ({ instrument, tradeSe
             </button>
           </div>
         </div>
+
+        {isVisible && (
+          <div className="shrink-0 px-3 py-2 border-b border-cyan-500/20 bg-cyan-500/5">
+            <div className="mx-auto w-full max-w-[720px] px-3 py-1 rounded-md border border-cyan-500/25 bg-[#0e1c2a]/70 text-cyan-200">
+              <div className="flex flex-wrap items-center justify-center md:justify-between gap-x-4 gap-y-1 text-xs md:text-sm font-mono">
+                <span>E: {tradeSetup ? formatSetupValue(tradeSetup.entry) : '--'}</span>
+                <span>TP: {tradeSetup ? formatSetupValue(tradeSetup.tp) : '--'}</span>
+                <span>PIPS: {tradeSetup ? formatSetupValue(Math.abs(tradeSetup.tp - tradeSetup.entry)) : '--'}</span>
+                {mainSignal && (
+                  <span className={mainSignal === SignalType.SALE ? 'text-rose-300' : 'text-emerald-300'}>
+                    {mainSignal === SignalType.SALE ? 'SELL' : 'BUY'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="w-full flex-grow relative">
           <div ref={containerRef} className="tradingview-widget-container" style={{ height: "100%", width: "100%" }}>
