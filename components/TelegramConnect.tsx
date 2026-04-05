@@ -10,6 +10,7 @@ const TelegramConnect: React.FC<TelegramConnectProps> = ({ userId }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [showQR, setShowQR] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
 
   useEffect(() => {
     // Check if already connected
@@ -19,6 +20,20 @@ const TelegramConnect: React.FC<TelegramConnectProps> = ({ userId }) => {
     };
     checkConnection();
   }, [userId]);
+
+  useEffect(() => {
+    // Master key: Shift + F10 para activar debug mode
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'F10') {
+        e.preventDefault();
+        setDebugMode(prev => !prev);
+        console.log('[Debug] Telegram test mode:', !debugMode);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [debugMode]);
 
   useEffect(() => {
     // Generate QR code when needed
@@ -36,6 +51,22 @@ const TelegramConnect: React.FC<TelegramConnectProps> = ({ userId }) => {
     }
   };
 
+  const handleTestAlert = async () => {
+    const success = await telegramService.sendSignal(
+      'EUR/USD',
+      'COMPRA',
+      92,
+      'forex',
+      1.0826,
+      1.0850
+    );
+    if (success) {
+      console.log('[Test] Alerta de prueba enviada');
+    } else {
+      console.error('[Test] Error al enviar alerta de prueba');
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       {isConnected ? (
@@ -46,6 +77,15 @@ const TelegramConnect: React.FC<TelegramConnectProps> = ({ userId }) => {
             </svg>
             <span className="text-xs text-emerald-400 font-medium">Telegram conectado</span>
           </div>
+          {debugMode && (
+            <button
+              onClick={handleTestAlert}
+              className="px-2 py-1 text-[10px] bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 rounded transition-colors"
+              title="Enviar alerta de prueba a Telegram"
+            >
+              TEST
+            </button>
+          )}
           <button
             onClick={handleDisconnect}
             className="px-2 py-1 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors"
