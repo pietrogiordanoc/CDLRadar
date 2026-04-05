@@ -399,7 +399,8 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
       <div className={`hidden md:flex items-center justify-start gap-4 p-3 px-4 rounded-xl border transition-colors duration-200
         ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
         hover:bg-white/[0.04] hover:border-white/10
-        ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}`}>
+        ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}
+        ${newSignalTriggerId === globalRefreshTrigger ? 'animate-pulse-new-signal' : ''}`}>
       
       <style jsx>{`
         @keyframes pulse-slow {
@@ -408,6 +409,13 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         }
         .animate-pulse-slow {
           animation: pulse-slow 0.8s ease-in-out 3;
+        }
+        @keyframes pulseNewSignal {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.01); opacity: 0.85; }
+        }
+        .animate-pulse-new-signal {
+          animation: pulseNewSignal 30s ease-out;
         }
       `}</style>
       
@@ -582,7 +590,8 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
     {/* Mobile Layout - Card Style */}
     <div className={`md:hidden flex flex-col gap-3 p-3 rounded-lg border transition-colors duration-200
       ${isBookmarked ? 'bg-white/[0.04] border-white/10' : 'bg-white/[0.02] border-white/[0.06]'}
-      ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}`}>
+      ${refreshJustCompleted && activeTrade ? 'animate-pulse-slow' : ''}
+      ${newSignalTriggerId === globalRefreshTrigger ? 'animate-pulse-new-signal' : ''}`}>
       
       {/* Row 1: Symbol, Status, Bookmark */}
       <div className="flex items-center justify-between">
