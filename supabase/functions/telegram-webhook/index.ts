@@ -69,10 +69,41 @@ serve(async (req) => {
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       }
 
+      // Obtener información del usuario si está autenticado
+      let userName = "";
+      let userEmail = "";
+      
+      // Si el userId es un UUID (usuario autenticado), obtener sus datos
+      if (userId.length === 36 && userId.includes('-')) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email, plan")
+          .eq("user_id", userId)
+          .single();
+        
+        if (profile) {
+          userEmail = profile.email || "";
+          // Extraer nombre del email (parte antes del @)
+          userName = userEmail ? userEmail.split('@')[0] : "";
+        }
+      }
+
+      // Mensaje personalizado de bienvenida
+      let greeting = "👋 *¡Hola";
+      if (userName) {
+        greeting += `, ${userName}`;
+      }
+      greeting += "!*\n\n";
+      
+      if (userEmail) {
+        greeting += `📧 Cuenta: ${userEmail}\n\n`;
+      }
+      
       // Confirmación con instrucciones completas
       await sendTelegramMessage(
         chatId,
-        "✅ *Conectado a CDL Radar*\n\n" +
+        greeting +
+        "✅ *Bienvenido a CDL Radar Alerts*\n\n" +
         "Ahora recibirás alertas de trading en tiempo real directamente en Telegram.\n\n" +
         "📢 *CONFIGURA UN SONIDO ESPECIAL:*\n" +
         "1️⃣ Toca mi nombre arriba\n" +
@@ -84,7 +115,8 @@ serve(async (req) => {
         "• Si cierras sesión, las alertas se pausarán\n" +
         "• Usuarios gratuitos: 1 hora diaria de alertas\n" +
         "• Premium: alertas ilimitadas 24/7\n\n" +
-        "🚀 ¡Listo! Espera la próxima señal NOW.",
+        "🚀 ¡Listo! Espera la próxima señal NOW.\n\n" +
+        "📈 *¡Felices operaciones!* 💰",
         true
       );
     }
