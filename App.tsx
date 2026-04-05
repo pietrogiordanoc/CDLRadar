@@ -284,10 +284,20 @@ const App: React.FC = () => {
     const initTelegram = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       let id: string;
+      let isPaid = false;
       
       if (user) {
         // Usuario autenticado
         id = user.id;
+        
+        // Obtener plan del usuario
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', user.id)
+          .single();
+        
+        isPaid = profile?.plan === 'paid';
       } else {
         // Usuario anónimo: generar ID único persistente
         const stored = localStorage.getItem('cdl_radar_visitor_id');
@@ -302,6 +312,21 @@ const App: React.FC = () => {
       
       setUserId(id);
       await telegramService.initialize(id);
+      
+      // DESCONEXIÓN AUTOMÁTICA PARA FREEMIUM AL CERRAR NAVEGADOR
+      const handleBeforeUnload = async () => {
+        if (!isPaid && telegramService.isConnected()) {
+          // Freemium: desconectar sin mensaje (silencioso)
+          await telegramService.disconnectSilent(id);
+        }
+      };
+      
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      
+      // Cleanup
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
     };
     initTelegram();
   }, []);

@@ -244,11 +244,38 @@ export const disconnectTelegram = async (userId: string): Promise<boolean> => {
   }
 };
 
+/**
+ * Disconnect Telegram silently (no goodbye message)
+ * Used for auto-disconnect when freemium users close browser
+ */
+export const disconnectTelegramSilent = async (userId: string): Promise<boolean> => {
+  try {
+    const { supabase } = await import('../services/supabaseClient');
+    const { error } = await supabase
+      .from('telegram_connections')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('[Telegram] Silent disconnect error:', error);
+      return false;
+    }
+
+    userChatId = null;
+    console.log('[Telegram] Silently disconnected (freemium auto-logout)');
+    return true;
+  } catch (error) {
+    console.error('[Telegram] Silent disconnect error:', error);
+    return false;
+  }
+};
+
 export const telegramService = {
   initialize: initializeTelegram,
   sendSignal: sendTelegramSignal,
   getBotLink: getTelegramBotLink,
   isConnected: isTelegramConnected,
   disconnect: disconnectTelegram,
+  disconnectSilent: disconnectTelegramSilent,
   sendGoodbye: sendGoodbyeMessage,
 };
