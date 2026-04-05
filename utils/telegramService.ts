@@ -52,22 +52,29 @@ const sendGoodbyeMessage = async (reason: 'timeout' | 'logout' | 'expired'): Pro
       case 'timeout':
         message = '⏰ *Tu tiempo gratuito ha terminado*\n\n' +
                   'Has agotado tu hora diaria de acceso al Radar.\n\n' +
-                  '💡 Opciones:\n' +
+                  '💡 *¿Qué puedes hacer?*\n' +
                   '• Vuelve mañana para otra hora gratis\n' +
-                  '• Hazte Premium para acceso ilimitado\n\n' +
-                  '¡Hasta pronto! 👋';
+                  '• Hazte Premium para acceso ilimitado 24/7\n\n' +
+                  '📊 Con Premium recibirás alertas sin límite de tiempo.\n\n' +
+                  '¡Hasta mañana! 👋';
         break;
       case 'logout':
-        message = '👋 *Te has desconectado*\n\n' +
-                  'Has cerrado sesión en el Radar.\n\n' +
-                  'Las alertas se reanudarán cuando vuelvas a conectarte.\n\n' +
-                  '¡Hasta pronto!';
+        message = '👋 *Desconectado de CDL Radar*\n\n' +
+                  'Has desconectado las alertas de Telegram.\n\n' +
+                  '🔄 *Para volver a recibir alertas:*\n' +
+                  '1️⃣ Abre el Radar\n' +
+                  '2️⃣ Click en "Conectar Telegram"\n' +
+                  '3️⃣ Escanea el QR de nuevo\n\n' +
+                  '¡Te esperamos de vuelta! 🚀';
         break;
       case 'expired':
         message = '⚠️ *Tu plan Premium ha caducado*\n\n' +
                   'Tu suscripción ya no está activa.\n\n' +
-                  'Renueva tu plan para seguir recibiendo alertas ilimitadas.\n\n' +
-                  '¡Te esperamos de vuelta! 💎';
+                  '💎 *Renueva tu Premium para:*\n' +
+                  '• Alertas ilimitadas 24/7\n' +
+                  '• Sin límite de tiempo diario\n' +
+                  '• Acceso completo al Radar\n\n' +
+                  '¡Te esperamos de vuelta! 💫';
         break;
     }
     
@@ -209,6 +216,11 @@ export const isTelegramConnected = (): boolean => {
  */
 export const disconnectTelegram = async (userId: string): Promise<boolean> => {
   try {
+    // Enviar mensaje de despedida ANTES de desconectar
+    if (userChatId) {
+      await sendGoodbyeMessage('logout');
+    }
+    
     const { supabase } = await import('../services/supabaseClient');
     const { error } = await supabase
       .from('telegram_connections')

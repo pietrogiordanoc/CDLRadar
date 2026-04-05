@@ -69,10 +69,22 @@ serve(async (req) => {
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       }
 
-      // Confirmación
+      // Confirmación con instrucciones completas
       await sendTelegramMessage(
         chatId,
-        "✅ *Conectado a CDL Radar*\n\nAhora recibirás alertas de todas las señales de trading en tiempo real.\n\n🔔 Las notificaciones llegarán automáticamente cuando el Radar detecte oportunidades.",
+        "✅ *Conectado a CDL Radar*\n\n" +
+        "Ahora recibirás alertas de trading en tiempo real directamente en Telegram.\n\n" +
+        "📢 *CONFIGURA UN SONIDO ESPECIAL:*\n" +
+        "1️⃣ Toca mi nombre arriba\n" +
+        "2️⃣ Notificaciones → Sonido\n" +
+        "3️⃣ Elige un tono único\n\n" +
+        "Así no confundirás las alertas de trading con otros mensajes.\n\n" +
+        "⚠️ *IMPORTANTE:*\n" +
+        "• Debes mantener el Radar *abierto* (aunque esté en background)\n" +
+        "• Si cierras sesión, las alertas se pausarán\n" +
+        "• Usuarios gratuitos: 1 hora diaria de alertas\n" +
+        "• Premium: alertas ilimitadas 24/7\n\n" +
+        "🚀 ¡Listo! Espera la próxima señal NOW.",
         true
       );
     }
