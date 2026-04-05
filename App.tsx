@@ -331,6 +331,64 @@ const App: React.FC = () => {
     initTelegram();
   }, []);
 
+  // Recibir token del portal (cuando está embebido en iframe)
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      // Validar origen (solo del portal)
+      if (!event.data || typeof event.data !== 'object') return;
+      if (event.data.type !== 'PORTAL_SESSION') return;
+      
+      console.log('[Radar] Recibido token del portal');
+      
+      try {
+        const { token, userId } = event.data;
+        if (!token || !userId) return;
+        
+        // Autenticar con el token recibido
+        const { data, error } = await supabase.auth.setSession({
+          access_token: token,
+          refresh_token: '' // El portal maneja el refresh
+        });
+        
+        if (!error && data.user) {
+          console.log('[Radar] Autenticado con token del portal:', data.user.id);
+          
+          // Actualizar userId con el UUID del portal
+          setUserId(data.user.id);
+          
+          // Reinicializar Telegram con el userId correcto
+          await telegramService.initialize(data.user.id);
+          
+          // Obtener plan para beforeunload
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan')
+            .eq('id', data.user.id)
+            .single();
+          
+          const isPaid = profile?.plan === 'paid';
+          
+          // Configurar beforeunload con el plan correcto
+          const handleBeforeUnload = async () => {
+            if (!isPaid && telegramService.isConnected()) {
+              await telegramService.disconnectSilent(data.user.id);
+            }
+          };
+          
+          window.addEventListener('beforeunload', handleBeforeUnload);
+        }
+      } catch (error) {
+        console.error('[Radar] Error procesando token del portal:', error);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
   // Auto-activar audio en el primer click del usuario (bypass autoplay policy)
   useEffect(() => {
     if (audioReady) return; // Ya activado previamente
