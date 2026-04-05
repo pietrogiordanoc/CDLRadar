@@ -56,7 +56,8 @@ const sendGoodbyeMessage = async (reason: 'timeout' | 'logout' | 'expired'): Pro
                   '• Vuelve mañana para otra hora gratis\n' +
                   '• Hazte Premium para acceso ilimitado 24/7\n\n' +
                   '📊 Con Premium recibirás alertas sin límite de tiempo.\n\n' +
-                  '¡Hasta mañana! 👋';
+                  '¡Hasta mañana! 👋\n\n' +
+                  '🌐 www.condinerolibre.com';
         break;
       case 'logout':
         message = '👋 *Desconectado de CDL Radar*\n\n' +
@@ -65,7 +66,8 @@ const sendGoodbyeMessage = async (reason: 'timeout' | 'logout' | 'expired'): Pro
                   '1️⃣ Abre el Radar\n' +
                   '2️⃣ Click en "Conectar Telegram"\n' +
                   '3️⃣ Escanea el QR de nuevo\n\n' +
-                  '¡Te esperamos de vuelta! 🚀';
+                  '¡Te esperamos de vuelta! 🚀\n\n' +
+                  '🌐 www.condinerolibre.com';
         break;
       case 'expired':
         message = '⚠️ *Tu plan Premium ha caducado*\n\n' +
@@ -74,7 +76,8 @@ const sendGoodbyeMessage = async (reason: 'timeout' | 'logout' | 'expired'): Pro
                   '• Alertas ilimitadas 24/7\n' +
                   '• Sin límite de tiempo diario\n' +
                   '• Acceso completo al Radar\n\n' +
-                  '¡Te esperamos de vuelta! 💫';
+                  '¡Te esperamos de vuelta! 💫\n\n' +
+                  '🌐 www.condinerolibre.com';
         break;
     }
     

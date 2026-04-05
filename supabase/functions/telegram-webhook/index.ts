@@ -116,7 +116,8 @@ serve(async (req) => {
         "• Usuarios gratuitos: 1 hora diaria de alertas\n" +
         "• Premium: alertas ilimitadas 24/7\n\n" +
         "🚀 ¡Listo! Espera la próxima señal NOW.\n\n" +
-        "📈 *¡Felices operaciones!* 💰",
+        "📈 *¡Felices operaciones!* 💰\n\n" +
+        "🌐 www.condinerolibre.com",
         true
       );
     }
