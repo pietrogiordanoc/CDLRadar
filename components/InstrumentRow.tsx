@@ -411,25 +411,34 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
           animation: pulse-slow 0.8s ease-in-out 3;
         }
         @keyframes pulseNewSignal {
-          0% { opacity: 1; }
-          2% { opacity: 0.7; }
-          4% { opacity: 1; }
-          6% { opacity: 0.7; }
-          8% { opacity: 1; }
-          10% { opacity: 0.7; }
-          12% { opacity: 1; }
-          14% { opacity: 0.7; }
-          16% { opacity: 1; }
-          20% { opacity: 0.7; }
-          24% { opacity: 1; }
-          30% { opacity: 0.7; }
-          36% { opacity: 1; }
-          44% { opacity: 0.7; }
-          52% { opacity: 1; }
-          62% { opacity: 0.7; }
-          72% { opacity: 1; }
-          84% { opacity: 0.7; }
-          100% { opacity: 1; }
+          0% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          1% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          2% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          3% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          4% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          5% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          6% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          7% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          8% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          9% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          10% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          11.5% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          13% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          15% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          17% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          19.5% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          22% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          25% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          28% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          32% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          36% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          42% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          48% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          56% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          64% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          74% { opacity: 0.4; background-color: rgba(6, 182, 212, 0.02); }
+          84% { opacity: 1; background-color: rgba(6, 182, 212, 0.08); }
+          100% { opacity: 1; background-color: transparent; }
         }
         .animate-pulse-new-signal {
           animation: pulseNewSignal 30s cubic-bezier(0.4, 0, 0.6, 1);
