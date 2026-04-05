@@ -3,7 +3,7 @@ import { Bookmark, X } from 'lucide-react';
 import { Instrument, MultiTimeframeAnalysis, SignalType, ActionType, Timeframe, Strategy, Candlestick, TradeSetup } from '../types';
 import { fetchTimeSeries, PriceStore, resampleCandles, isMarketOpen } from '../services/twelveDataService';
 import { audioService } from '../utils/audioService';
-import { notificationService } from '../utils/notificationService';
+import { telegramService } from '../utils/telegramService';
 
 export const GlobalAnalysisCache: Record<string, { 
   analysis: MultiTimeframeAnalysis, 
@@ -234,35 +234,24 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
         console.log(`[Alarma] 🔔 Disparando alarma de ENTRADA para ${instrument.symbol}`);
         playAlertSound('entry');
         
-        // Enviar notificación del sistema (funciona en segundo plano)
-        if (notificationService.canSend()) {
+        // Enviar alerta a Telegram si está conectado
+        if (telegramService.isConnected()) {
           const direction = currentAnalysis?.mainSignal === SignalType.SALE ? 'VENTA' : 'COMPRA';
-          notificationService.sendSignal(
+          telegramService.sendSignal(
             instrument.symbol,
             direction,
             currentAnalysis?.powerScore || 0,
-            instrument.type
+            instrument.type,
+            tradeSetup?.entry,
+            tradeSetup?.tp
           );
-        } else {
-          // Pedir permiso la primera vez
-          notificationService.requestPermission().then(granted => {
-            if (granted) {
-              const direction = currentAnalysis?.mainSignal === SignalType.SALE ? 'VENTA' : 'COMPRA';
-              notificationService.sendSignal(
-                instrument.symbol,
-                direction,
-                currentAnalysis?.powerScore || 0,
-                instrument.type
-              );
-            }
-          });
         }
       } else if (action === ActionType.SALIR) {
         console.log(`[Alarma] 🔔 Disparando alarma de SALIDA para ${instrument.symbol}`);
         playAlertSound('exit');
       }
     }
-  }, [newSignalTriggerId, globalRefreshTrigger, instrument.id, instrument.symbol, instrument.type, playAlertSound]);
+  }, [newSignalTriggerId, globalRefreshTrigger, instrument.id, instrument.symbol, instrument.type, tradeSetup, playAlertSound]);
 
   // Effect to run analysis on global refresh
   useEffect(() => { 

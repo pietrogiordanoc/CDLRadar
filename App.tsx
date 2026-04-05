@@ -8,8 +8,11 @@ import TradingViewModal from './components/TradingViewModal';
 import TendencialModal from './components/TendencialModal';
 import Radar from './components/Radar';
 import SessionMonitor from './components/SessionMonitor';
+import TelegramConnect from './components/TelegramConnect';
 import { audioService } from './utils/audioService';
+import { telegramService } from './utils/telegramService';
 import { PriceStore } from './services/twelveDataService';
+import { supabase } from './services/supabaseClient';
 
 type SortConfig = { key: 'symbol' | 'action' | 'signal' | 'price' | 'score'; direction: 'asc' | 'desc' } | null;
 
@@ -74,6 +77,8 @@ const App: React.FC = () => {
       trades: []
     };
   });
+  
+  const [userId, setUserId] = useState<string | null>(null);
   
   const analysesRef = useRef<Record<string, MultiTimeframeAnalysis>>({});
   const [forceUpdateTrigger, forceUpdate] = useState(0);
@@ -272,6 +277,18 @@ const App: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Inicializar Telegram service con userId
+  useEffect(() => {
+    const initTelegram = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        await telegramService.initialize(user.id);
+      }
+    };
+    initTelegram();
   }, []);
 
   // Auto-activar audio en el primer click del usuario (bypass autoplay policy)
@@ -645,6 +662,8 @@ const App: React.FC = () => {
                   title={audioReady ? 'Audio activado' : 'Haz click para activar audio'}
                 ></div>
               </div>
+              <div className="h-6 w-px bg-white/10"></div>
+              {userId && <TelegramConnect userId={userId} />}
             </div>
             <div className={`p-1 relative ${showDebugFrames ? 'border-2 border-pink-500' : ''}`}>
               {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-1 text-[9px] text-pink-400 z-50">H3D-Timer</span>}
