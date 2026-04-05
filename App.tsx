@@ -279,14 +279,29 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  // Inicializar Telegram service con userId
+  // Inicializar Telegram service con userId (genera uno único si no hay sesión)
   useEffect(() => {
     const initTelegram = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      let id: string;
+      
       if (user) {
-        setUserId(user.id);
-        await telegramService.initialize(user.id);
+        // Usuario autenticado
+        id = user.id;
+      } else {
+        // Usuario anónimo: generar ID único persistente
+        const stored = localStorage.getItem('cdl_radar_visitor_id');
+        if (stored) {
+          id = stored;
+        } else {
+          // Generar nuevo ID único
+          id = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+          localStorage.setItem('cdl_radar_visitor_id', id);
+        }
       }
+      
+      setUserId(id);
+      await telegramService.initialize(id);
     };
     initTelegram();
   }, []);

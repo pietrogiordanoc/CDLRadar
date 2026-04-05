@@ -13,7 +13,7 @@ export const initializeTelegram = async (userId: string): Promise<boolean> => {
   try {
     const { supabase } = await import('../services/supabaseClient');
     const { data, error } = await supabase
-      .from('profiles')
+      .from('telegram_connections')
       .select('telegram_chat_id')
       .eq('user_id', userId)
       .single();
@@ -111,8 +111,8 @@ export const disconnectTelegram = async (userId: string): Promise<boolean> => {
   try {
     const { supabase } = await import('../services/supabaseClient');
     const { error } = await supabase
-      .from('profiles')
-      .update({ telegram_chat_id: null })
+      .from('telegram_connections')
+      .delete()
       .eq('user_id', userId);
 
     if (error) {

@@ -51,14 +51,20 @@ serve(async (req) => {
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       }
 
-      // Guardar chat_id en Supabase
+      // Guardar chat_id en Supabase (upsert para crear o actualizar)
       const { error } = await supabase
-        .from("profiles")
-        .update({ telegram_chat_id: chatId.toString() })
-        .eq("user_id", userId);
+        .from("telegram_connections")
+        .upsert(
+          { 
+            user_id: userId, 
+            telegram_chat_id: chatId.toString(),
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'user_id' }
+        );
 
       if (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error saving connection:", error);
         await sendTelegramMessage(chatId, "❌ Error al conectar. Intenta nuevamente.");
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       }
