@@ -649,6 +649,22 @@ const App: React.FC = () => {
                 >
                   TEST
                 </button>
+                <button 
+                  onClick={async () => {
+                    console.log('[Notif Test] Pidiendo permiso...');
+                    const granted = await notificationService.requestPermission();
+                    console.log('[Notif Test] Permiso:', granted);
+                    if (granted) {
+                      notificationService.sendSignal('EUR/USD', 'COMPRA', 92, 'forex');
+                    } else {
+                      alert('Permiso denegado. Verifica configuración del navegador.');
+                    }
+                  }}
+                  className="px-2 py-1 text-[10px] bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded transition-colors"
+                  title="Probar notificación del sistema"
+                >
+                  TEST NOTIF
+                </button>
                 <div 
                   className={`w-2 h-2 rounded-full ${audioReady ? 'bg-emerald-500' : 'bg-yellow-500'}`}
                   title={audioReady ? 'Audio activado' : 'Haz click para activar audio'}
