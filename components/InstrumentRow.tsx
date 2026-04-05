@@ -411,11 +411,28 @@ const InstrumentRow: React.FC<InstrumentRowProps> = ({
           animation: pulse-slow 0.8s ease-in-out 3;
         }
         @keyframes pulseNewSignal {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.01); opacity: 0.85; }
+          0% { opacity: 1; }
+          2% { opacity: 0.7; }
+          4% { opacity: 1; }
+          6% { opacity: 0.7; }
+          8% { opacity: 1; }
+          10% { opacity: 0.7; }
+          12% { opacity: 1; }
+          14% { opacity: 0.7; }
+          16% { opacity: 1; }
+          20% { opacity: 0.7; }
+          24% { opacity: 1; }
+          30% { opacity: 0.7; }
+          36% { opacity: 1; }
+          44% { opacity: 0.7; }
+          52% { opacity: 1; }
+          62% { opacity: 0.7; }
+          72% { opacity: 1; }
+          84% { opacity: 0.7; }
+          100% { opacity: 1; }
         }
         .animate-pulse-new-signal {
-          animation: pulseNewSignal 30s ease-out;
+          animation: pulseNewSignal 30s cubic-bezier(0.4, 0, 0.6, 1);
         }
       `}</style>
       
