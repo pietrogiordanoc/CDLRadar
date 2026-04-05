@@ -9,7 +9,6 @@ import TendencialModal from './components/TendencialModal';
 import Radar from './components/Radar';
 import SessionMonitor from './components/SessionMonitor';
 import { audioService } from './utils/audioService';
-import { notificationService } from './utils/notificationService';
 import { PriceStore } from './services/twelveDataService';
 
 type SortConfig = { key: 'symbol' | 'action' | 'signal' | 'price' | 'score'; direction: 'asc' | 'desc' } | null;
@@ -290,14 +289,6 @@ const App: React.FC = () => {
       }
       setAudioReady(true);
       localStorage.setItem('audioActivated', 'true');
-      
-      // Pedir permiso de notificaciones en la primera interacción
-      const granted = await notificationService.requestPermission();
-      if (granted) {
-        console.log('[NotificationService] Permiso de notificaciones concedido');
-      } else {
-        console.log('[NotificationService] Permiso de notificaciones denegado');
-      }
     };
 
     const handleFirstInteraction = () => {
@@ -648,22 +639,6 @@ const App: React.FC = () => {
                   title="Probar sonido de alerta"
                 >
                   TEST
-                </button>
-                <button 
-                  onClick={async () => {
-                    console.log('[Notif Test] Pidiendo permiso...');
-                    const granted = await notificationService.requestPermission();
-                    console.log('[Notif Test] Permiso:', granted);
-                    if (granted) {
-                      notificationService.sendSignal('EUR/USD', 'COMPRA', 92, 'forex');
-                    } else {
-                      alert('Permiso denegado. Verifica configuración del navegador.');
-                    }
-                  }}
-                  className="px-2 py-1 text-[10px] bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded transition-colors"
-                  title="Probar notificación del sistema"
-                >
-                  TEST NOTIF
                 </button>
                 <div 
                   className={`w-2 h-2 rounded-full ${audioReady ? 'bg-emerald-500' : 'bg-yellow-500'}`}
