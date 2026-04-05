@@ -3,8 +3,90 @@
 // @ts-ignore - Vite env variables
 const TELEGRAM_BOT_TOKEN = import.meta.env?.VITE_TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+const RADAR_ACCESS_URL = 'https://yhgqmbexjscojlrzguvh.supabase.co/functions/v1/radar-access';
 
 let userChatId: string | null = null;
+let lastAccessCheck: { allowed: boolean; timestamp: number } | null = null;
+
+/**
+ * Check if user has radar access (respects freemium/premium limits)
+ */
+const checkRadarAccess = async (): Promise<boolean> => {
+  try {
+    const { supabase } = await import('../services/supabaseClient');
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // Si no hay sesión (visitante anónimo), permitir acceso
+    if (!session) {
+      return true;
+    }
+    
+    // Verificar acceso con el mismo sistema del portal
+    const response = await fetch(RADAR_ACCESS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({ action: 'check' })
+    });
+    
+    const data = await response.json();
+    return data.allowed === true;
+  } catch (error) {
+    console.error('[Telegram] Access check error:', error);
+    return true; // En caso de error, permitir (fail-open)
+  }
+};
+
+/**
+ * Send goodbye message when access is lost
+ */
+const sendGoodbyeMessage = async (reason: 'timeout' | 'logout' | 'expired'): Promise<void> => {
+  if (!userChatId || !TELEGRAM_BOT_TOKEN) return;
+  
+  try {
+    let message = '';
+    
+    switch (reason) {
+      case 'timeout':
+        message = '⏰ *Tu tiempo gratuito ha terminado*\n\n' +
+                  'Has agotado tu hora diaria de acceso al Radar.\n\n' +
+                  '💡 Opciones:\n' +
+                  '• Vuelve mañana para otra hora gratis\n' +
+                  '• Hazte Premium para acceso ilimitado\n\n' +
+                  '¡Hasta pronto! 👋';
+        break;
+      case 'logout':
+        message = '👋 *Te has desconectado*\n\n' +
+                  'Has cerrado sesión en el Radar.\n\n' +
+                  'Las alertas se reanudarán cuando vuelvas a conectarte.\n\n' +
+                  '¡Hasta pronto!';
+        break;
+      case 'expired':
+        message = '⚠️ *Tu plan Premium ha caducado*\n\n' +
+                  'Tu suscripción ya no está activa.\n\n' +
+                  'Renueva tu plan para seguir recibiendo alertas ilimitadas.\n\n' +
+                  '¡Te esperamos de vuelta! 💎';
+        break;
+    }
+    
+    await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: userChatId,
+        text: message,
+        parse_mode: 'Markdown',
+        disable_web_page_preview: true,
+      }),
+    });
+    
+    console.log(`[Telegram] Goodbye message sent (${reason})`);
+  } catch (error) {
+    console.error('[Telegram] Goodbye message error:', error);
+  }
+};
 
 /**
  * Initialize Telegram service with user's chat_id from Supabase
@@ -47,6 +129,24 @@ export const sendTelegramSignal = async (
     console.log('[Telegram] Not configured');
     return false;
   }
+
+  // VERIFICAR ACCESO antes de enviar (respeta límites freemium/premium)
+  const hasAccess = await checkRadarAccess();
+  
+  if (!hasAccess) {
+    console.log('[Telegram] Access denied - not sending signal');
+    
+    // Si es la primera vez que detectamos pérdida de acceso, enviar mensaje de despedida
+    if (!lastAccessCheck || lastAccessCheck.allowed) {
+      await sendGoodbyeMessage('timeout');
+    }
+    
+    lastAccessCheck = { allowed: false, timestamp: Date.now() };
+    return false;
+  }
+  
+  // Actualizar cache de acceso
+  lastAccessCheck = { allowed: true, timestamp: Date.now() };
 
   try {
     const directionEmoji = direction === 'COMPRA' ? '📈' : '📉';
@@ -135,4 +235,5 @@ export const telegramService = {
   getBotLink: getTelegramBotLink,
   isConnected: isTelegramConnected,
   disconnect: disconnectTelegram,
+  sendGoodbye: sendGoodbyeMessage,
 };
