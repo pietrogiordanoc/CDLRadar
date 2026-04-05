@@ -281,7 +281,25 @@ const App: React.FC = () => {
 
   // Inicializar Telegram service con userId (genera uno único si no hay sesión)
   useEffect(() => {
+    const isInIframe = window.self !== window.top;
+    
     const initTelegram = async () => {
+      // Si estamos en iframe, ESPERAR el postMessage del portal (máx 3 segundos)
+      if (isInIframe) {
+        console.log('[Radar] En iframe - esperando autenticación del Portal...');
+        // Esperar 3 segundos para que llegue el postMessage
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Verificar si el postMessage ya autenticó
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log('[Radar] Autenticado via postMessage:', user.id);
+          return; // El postMessage ya manejó la inicialización
+        } else {
+          console.log('[Radar] No se recibió autenticación del Portal, iniciando como anónimo');
+        }
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       let id: string;
       let isPaid = false;
@@ -352,6 +370,19 @@ const App: React.FC = () => {
         
         if (!error && data.user) {
           console.log('[Radar] Autenticado con token del portal:', data.user.id);
+          
+          // LIMPIAR visitor_id de localStorage (ya no es anónimo)
+          const oldVisitorId = localStorage.getItem('cdl_radar_visitor_id');
+          localStorage.removeItem('cdl_radar_visitor_id');
+          
+          // ELIMINAR conexión antigua de Telegram si había visitor_id
+          if (oldVisitorId) {
+            console.log('[Radar] Limpiando conexión visitor antigua:', oldVisitorId);
+            await supabase
+              .from('telegram_connections')
+              .delete()
+              .eq('user_id', oldVisitorId);
+          }
           
           // Actualizar userId con el UUID del portal
           setUserId(data.user.id);
