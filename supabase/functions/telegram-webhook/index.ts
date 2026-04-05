@@ -115,6 +115,13 @@ serve(async (req) => {
       } else {
         // MENSAJE FREEMIUM
         planMessage = 
+          "🔴🔴🔴 *MODO ESPÍA ACTIVADO* 🔴🔴🔴\n\n" +
+          "✅ Este mensaje confirma que el Edge Function está ACTUALIZADO\n" +
+          "✅ La consulta a profiles funciona correctamente\n" +
+          "✅ userId: " + userId + "\n" +
+          "✅ userName: " + (userName || "VACÍO") + "\n" +
+          "✅ userEmail: " + (userEmail || "VACÍO") + "\n" +
+          "✅ isPaid: " + isPaid + "\n\n" +
           "⚠️ *IMPORTANTE - PLAN GRATUITO:*\n" +
           "🔄 Al cerrar el navegador, tu conexión se desconecta automáticamente\n" +
           "⏰ Tu cuota diaria se renueva a las 12:00 AM (medianoche)\n" +
