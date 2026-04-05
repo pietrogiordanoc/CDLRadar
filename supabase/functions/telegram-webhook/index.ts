@@ -72,6 +72,7 @@ serve(async (req) => {
       // Obtener información del usuario si está autenticado
       let userName = "";
       let userEmail = "";
+      let isPaid = false;
       
       // Si el userId es un UUID (usuario autenticado), obtener sus datos
       if (userId.length === 36 && userId.includes('-')) {
@@ -83,6 +84,7 @@ serve(async (req) => {
         
         if (profile) {
           userEmail = profile.email || "";
+          isPaid = profile.plan === 'paid';
           // Extraer nombre del email (parte antes del @)
           userName = userEmail ? userEmail.split('@')[0] : "";
         }
@@ -99,6 +101,32 @@ serve(async (req) => {
         greeting += `📧 Cuenta: ${userEmail}\n\n`;
       }
       
+      // Mensaje específico según plan
+      let planMessage = "";
+      
+      if (isPaid) {
+        // MENSAJE PREMIUM
+        planMessage = 
+          "⚠️ *IMPORTANTE - PLAN PREMIUM:*\n" +
+          "✅ Tu conexión permanece activa aunque cierres el navegador\n" +
+          "✅ Recibirás alertas 24/7 sin límites\n" +
+          "✅ Acceso ilimitado al Radar\n\n" +
+          "💎 Mantén el Radar abierto (puede estar en background) para recibir señales en tiempo real.";
+      } else {
+        // MENSAJE FREEMIUM
+        planMessage = 
+          "⚠️ *IMPORTANTE - PLAN GRATUITO:*\n" +
+          "🔄 Al cerrar el navegador, tu conexión se desconecta automáticamente\n" +
+          "⏰ Tu cuota diaria se renueva a las 12:00 AM (medianoche)\n" +
+          "⏱️ Tienes 1 hora de señales por día\n\n" +
+          "💡 *OPTIMIZA TU TIEMPO:*\n" +
+          "• Tu hora empieza a contar cuando abres el Radar\n" +
+          "• Abre a la hora que más te convenga (no desperdicies tu cuota)\n" +
+          "• Puedes fraccionar: usa 20 min, cierra, reconéctate más tarde = 40 min restantes\n" +
+          "• Cada día a medianoche se renueva tu hora completa\n\n" +
+          "💎 *¿Quieres alertas ilimitadas 24/7?* Hazte Premium.";
+      }
+      
       // Confirmación con instrucciones completas
       await sendTelegramMessage(
         chatId,
@@ -110,11 +138,7 @@ serve(async (req) => {
         "2️⃣ Notificaciones → Sonido\n" +
         "3️⃣ Elige un tono único\n\n" +
         "Así no confundirás las alertas de trading con otros mensajes.\n\n" +
-        "⚠️ *IMPORTANTE:*\n" +
-        "• Debes mantener el Radar *abierto* (aunque esté en background)\n" +
-        "• Si cierras sesión, las alertas se pausarán\n" +
-        "• Usuarios gratuitos: 1 hora diaria de alertas\n" +
-        "• Premium: alertas ilimitadas 24/7\n\n" +
+        planMessage + "\n\n" +
         "🚀 ¡Listo! Espera la próxima señal NOW.\n\n" +
         "📈 *¡Felices operaciones!* 💰\n\n" +
         "🌐 www.condinerolibre.com",
