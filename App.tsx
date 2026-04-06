@@ -279,6 +279,8 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  // TELEGRAM TEMPORALMENTE DESACTIVADO
+  /*
   // Inicializar Telegram service con userId (genera uno único si no hay sesión)
   useEffect(() => {
     const isInIframe = window.self !== window.top;
@@ -348,7 +350,10 @@ const App: React.FC = () => {
     };
     initTelegram();
   }, []);
+  */
 
+  // TELEGRAM TEMPORALMENTE DESACTIVADO - postMessage
+  /*
   // Recibir token del portal (cuando está embebido en iframe)
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -419,6 +424,7 @@ const App: React.FC = () => {
       window.removeEventListener('message', handleMessage);
     };
   }, []);
+  */
 
   // Auto-activar audio en el primer click del usuario (bypass autoplay policy)
   useEffect(() => {
@@ -791,48 +797,9 @@ const App: React.FC = () => {
                   title={audioReady ? 'Audio activado' : 'Haz click para activar audio'}
                 ></div>
               </div>
-              <div className="h-6 w-px bg-white/10"></div>
-              {userId && <TelegramConnect userId={userId} />}
-              <button
-                onClick={async () => {
-                  console.log('════════════════════════════════════════════════');
-                  console.log('🔍 DEBUG AUTH STATUS');
-                  console.log('════════════════════════════════════════════════');
-                  console.log('1. En iframe:', window.self !== window.top);
-                  console.log('2. userId actual:', userId);
-                  console.log('3. localStorage visitor_id:', localStorage.getItem('cdl_radar_visitor_id'));
-                  
-                  const { data: { session } } = await supabase.auth.getSession();
-                  console.log('4. Sesión Supabase:', session ? {
-                    user_id: session.user.id,
-                    email: session.user.email,
-                    token: session.access_token.substring(0, 20) + '...'
-                  } : 'NO HAY SESIÓN');
-                  
-                  console.log('5. Telegram conectado:', telegramService.isConnected());
-                  
-                  if (session?.user.id) {
-                    const { data: profile } = await supabase
-                      .from('profiles')
-                      .select('email, plan')
-                      .eq('id', session.user.id)
-                      .single();
-                    console.log('6. Profile DB:', profile);
-                    
-                    const { data: telegram } = await supabase
-                      .from('telegram_connections')
-                      .select('*')
-                      .eq('user_id', session.user.id)
-                      .single();
-                    console.log('7. Telegram connection DB:', telegram);
-                  }
-                  console.log('════════════════════════════════════════════════');
-                }}
-                className="ml-2 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-md font-medium transition-colors"
-                title="Ver estado de autenticación en consola"
-              >
-                🔍 DEBUG
-              </button>
+              {/* Telegram temporalmente desactivado */}
+              {/* <div className="h-6 w-px bg-white/10"></div> */}
+              {/* {userId && <TelegramConnect userId={userId} />} */}
             </div>
             <div className={`p-1 relative ${showDebugFrames ? 'border-2 border-pink-500' : ''}`}>
               {showDebugFrames && <span className="absolute -top-3 left-2 bg-[#050505] px-1 text-[9px] text-pink-400 z-50">H3D-Timer</span>}
